@@ -1,12 +1,12 @@
 {
   "drive": {
     "type": "sparkmax_vortex",
-    "id": 62,
+    "id": 12,
     "canbus": null
   },
   "angle": {
     "type": "sparkmax_neo550",
-    "id": 12,
+    "id": 36,
     "canbus": null
   },
   "encoder": {
@@ -19,7 +19,7 @@
     "angle": false
   },
   "absoluteEncoderInverted": true,
-  "absoluteEncoderOffset": 301.3301969,
+  "absoluteEncoderOffset": 0,
   "location": {
     "front": -13.25,
     "left": 13.25
