@@ -35,6 +35,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
 import frc.robot.Constants;
+import frc.robot.commands.AlignSwerveCommand;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -72,7 +74,7 @@ public class SwerveSubsystem extends SubsystemBase
   {
 
 
-    boolean blueAlliance = false;
+    boolean blueAlliance = false; // this could be changed
     Pose2d startingPose = blueAlliance ? new Pose2d(new Translation2d(Meter.of(1),
                                                                       Meter.of(4)),
                                                     Rotation2d.fromDegrees(0))
@@ -425,7 +427,8 @@ public class SwerveSubsystem extends SubsystemBase
    * @param translation   {@link Translation2d} that is the commanded linear velocity of the robot, in meters per
    *                      second. In robot-relative mode, positive x is torwards the bow (front) and positive y is
    *                      torwards port (left).  In field-relative mode, positive x is away from the alliance wall
-   *                      (field North) and positive y is torwards the left wall when looking through the driver station
+   *                      (field North) and positive y is torwards the left wall when looking through the 
+   * r station
    *                      glass (field West).
    * @param rotation      Robot angular rate, in radians per second. CCW positive.  Unaffected by field/robot
    *                      relativity.

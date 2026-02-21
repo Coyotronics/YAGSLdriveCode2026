@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import swervelib.math.Matter;
@@ -31,6 +32,10 @@ public final class Constants
 //    public static final PIDConstants TRANSLATION_PID = new PIDConstants(0.7, 0, 0);
 //    public static final PIDConstants ANGLE_PID       = new PIDConstants(0.4, 0, 0.01);
 //  }
+
+  public static String limelightName = "limelight";
+  public static Pose3d cameraOffsetFromRobotCenter;
+  public static Translation3d turretPivotCenterFromCamera;
 
   public static final class DrivebaseConstants
   {

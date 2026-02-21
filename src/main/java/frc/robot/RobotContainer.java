@@ -5,22 +5,31 @@
 package frc.robot;
 
 import com.pathplanner.lib.auto.NamedCommands;
+
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
+import frc.robot.commands.AlignSwerveCommand;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 import java.io.File;
+import java.time.Period;
+
+import swervelib.SwerveDrive;
 import swervelib.SwerveInputStream;
 
 /**
@@ -32,7 +41,7 @@ public class RobotContainer
 {
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
-  final         CommandXboxController driverXbox = new CommandXboxController(0);
+  private final CommandXboxController driverXbox = new CommandXboxController(0);
   // The robot's subsystems and commands are defined here...
   private final SwerveSubsystem       drivebase  = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
                                                                                 "swerve/neo"));
@@ -92,6 +101,9 @@ public class RobotContainer
                                                                                .translationHeadingOffset(Rotation2d.fromDegrees(
                                                                                    0));
 
+  private final double targetHeight = 5; // placeholder for later
+  private final Translation3d targetPos = new Translation3d(11.95, 4, targetHeight); // for simulation (z is a placeholder though should prob not be for simulation)
+
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
@@ -100,7 +112,29 @@ public class RobotContainer
     // Configure the trigger bindings
     configureBindings();
     DriverStation.silenceJoystickConnectionWarning(true);
-    
+  }
+
+  public SwerveSubsystem getSwerveSubsystem() { return drivebase; }
+
+  public void updateFakeLimelight() {
+    if (RobotBase.isSimulation()) { // a little trig to get for the fake lime light
+      double deltaX = targetPos.getX() - drivebase.getPose().getX();
+      double deltaY = targetPos.getY() - drivebase.getPose().getY();
+
+      double angleToTarget = Math.atan2(deltaY, deltaX);
+
+      double robotHeading = drivebase.getHeading().getRadians();
+
+      double tx = Math.toDegrees(angleToTarget - robotHeading);
+
+      // put tha shi between -180 and 180
+      tx = MathUtil.inputModulus(tx, -180, 180);
+      
+      FakeLimelight.setTX(tx);
+      FakeLimelight.setHasTarget(true);
+
+      drivebase.getSwerveDrive().field.getObject("Target Point").setPose(new Pose2d(targetPos.getX(), targetPos.getY(), new Rotation2d()));
+    }
   }
 
   /**
@@ -122,6 +156,14 @@ public class RobotContainer
     Command driveSetpointGenKeyboard = drivebase.driveWithSetpointGeneratorFieldRelative(
         driveDirectAngleKeyboard);
 
+    driverXbox.y().toggleOnTrue(
+        new AlignSwerveCommand(
+          drivebase,
+          driveAngularVelocity,
+          Robot.isSimulation()
+      )
+    );
+
     if (RobotBase.isSimulation())
     {
       drivebase.setDefaultCommand(driveFieldOrientedDirectAngleKeyboard);
@@ -140,11 +182,11 @@ public class RobotContainer
       driveDirectAngleKeyboard.driveToPose(() -> target,
                                            new ProfiledPIDController(5,
                                                                      0,
-                                                                     0,
+                                                                     1,
                                                                      new Constraints(5, 2)),
                                            new ProfiledPIDController(5,
                                                                      0,
-                                                                     0,
+                                                                     1,
                                                                      new Constraints(Units.degreesToRadians(360),
                                                                                      Units.degreesToRadians(180))
                                            ));
@@ -152,6 +194,8 @@ public class RobotContainer
       driverXbox.button(1).whileTrue(drivebase.sysIdDriveMotorCommand());
       driverXbox.button(2).whileTrue(Commands.runEnd(() -> driveDirectAngleKeyboard.driveToPoseEnabled(true),
                                                      () -> driveDirectAngleKeyboard.driveToPoseEnabled(false)));
+      //driverXbox.b().onTrue(Commands.runOnce(() -> { System.out.println("(" + drivebase.getPose().getX() + ", " + drivebase.getPose().getY() + ")"); }));
+      driverXbox.b().whileTrue(Commands.run(() -> drivebase.drive(new Translation2d(0, 0), 0.5, true), drivebase));
 
 //      driverXbox.b().whileTrue(
 //          drivebase.driveToPose(
