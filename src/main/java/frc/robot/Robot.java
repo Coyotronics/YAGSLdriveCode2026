@@ -192,7 +192,7 @@ public class Robot extends TimedRobot
   public void simulationPeriodic()
   {
 
-      Pose3d simPose = new Pose3d(/* x, y, z in meters and rotation */);
-       posePub.set(simPose);
+      // Pose3d simPose = new Pose3d(/* x, y, z in meters and rotation */);
+      //  posePub.set(simPose);
   }
 }
