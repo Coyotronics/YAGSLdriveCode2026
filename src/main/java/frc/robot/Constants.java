@@ -16,6 +16,28 @@ import swervelib.math.Matter;
  * <p>It is advised to statically import this class (or one of its inner classes) wherever the
  * constants are needed, to reduce verbosity.
  */
+
+
+ //nikhilsai swerve constants
+
+
+// {
+//   "drive": {
+//     "p": 1.5,
+//     "i": 0.04,
+//     "d": 0.2,
+//     "f": 0.5,
+//     "iz": 0
+//   },
+//   "angle": {
+//     "p": 0.8,
+//     "i": 0.01,
+//     "d": 1,
+//     "f": 0.4,
+//     "iz": 0
+//   }
+// }
+
 public final class Constants
 {
 

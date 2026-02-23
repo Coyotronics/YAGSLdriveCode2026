@@ -4,9 +4,14 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
@@ -38,9 +43,18 @@ public class Robot extends TimedRobot
   /**
    * This function is run when the robot is first started up and should be used for any initialization code.
    */
+
+   private StructPublisher<Pose3d> posePub;
+    private final Field2d m_field = new Field2d();
   @Override
   public void robotInit()
   {
+
+
+    // Do this in either robot or subsystem init
+    // SmartDashboard.putData("Field", m_field);
+
+
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
     // autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
@@ -48,6 +62,10 @@ public class Robot extends TimedRobot
     // Create a timer to disable motor brake a few seconds after disable.  This will let the robot stop
     // immediately when disabled, but then also let it be pushed more 
     disabledTimer = new Timer();
+
+    posePub = NetworkTableInstance.getDefault()
+            .getStructTopic("Sim/MyPose", Pose3d.struct)
+            .publish();
 
     if (isSimulation())
     {
@@ -70,6 +88,8 @@ public class Robot extends TimedRobot
     // and running subsystem periodic() methods.  This must be called from the robot's periodic
     // block in order for anything in the Command-based framework to work.
     CommandScheduler.getInstance().run();
+
+    //m_field.setRobotPose(m_robotContainer.drivebase.getPose());
   }
 
   /**
@@ -171,5 +191,8 @@ public class Robot extends TimedRobot
   @Override
   public void simulationPeriodic()
   {
+
+      // Pose3d simPose = new Pose3d(/* x, y, z in meters and rotation */);
+      //  posePub.set(simPose);
   }
 }
