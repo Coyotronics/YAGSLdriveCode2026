@@ -41,10 +41,8 @@ public class RobotContainer
    * Converts driver input into a field-relative ChassisSpeeds that is controlled by angular velocity.
    */
   SwerveInputStream driveAngularVelocity = SwerveInputStream.of(drivebase.getSwerveDrive(),
-                                                                () -> /*driverXbox.getLeftY() * -1*/ 0,
-                                                                () -> /*driverXbox.getLeftX() * -1)*/ 0)
-                                                            .withControllerHeadingAxis(/*driverXbox::getRightX, driverXbox::getRightY*/ () -> 0, () -> 0)
-                                                            .headingWhile(true)
+                                                                () -> driverXbox.getLeftY() * -1,
+                                                                () -> driverXbox.getLeftX() * -1)
                                                             .withControllerRotationAxis(() -> driverXbox.getRawAxis(2))
                                                             .deadband(OperatorConstants.DEADBAND)
                                                             .scaleTranslation(0.8)
@@ -77,7 +75,7 @@ public class RobotContainer
                                                                                                               Math.sin(
                                                                                                                   driverXbox.getRawAxis(
                                                                                                                       2) *
-                                                                                                                  Math.PI) *
+                                                                                                                    Math.PI) *
                                                                                                               (Math.PI *
                                                                                                                2),
                                                                                                           () ->
