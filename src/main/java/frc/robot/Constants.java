@@ -9,51 +9,55 @@ import edu.wpi.first.math.util.Units;
 import swervelib.math.Matter;
 
 /**
- * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean constants. This
- * class should not be used for any other purpose. All constants should be declared globally (i.e. public static). Do
+ * The Constants class provides a convenient place for teams to hold robot-wide
+ * numerical or boolean constants. This
+ * class should not be used for any other purpose. All constants should be
+ * declared globally (i.e. public static). Do
  * not put anything functional in this class.
  *
- * <p>It is advised to statically import this class (or one of its inner classes) wherever the
+ * <p>
+ * It is advised to statically import this class (or one of its inner classes)
+ * wherever the
  * constants are needed, to reduce verbosity.
  */
 
-//nikhilsai swerve constants
+// nikhilsai swerve constants
 
 // {
-//   "drive": {
-//     "p": 1.5,
-//     "i": 0.04,
-//     "d": 0.2,
-//     "f": 0.5,
-//     "iz": 0
-//   },
-//   "angle": {
-//     "p": 0.8,
-//     "i": 0.01,
-//     "d": 1,
-//     "f": 0.4,
-//     "iz": 0
-//   }
+// "drive": {
+// "p": 1.5,
+// "i": 0.04,
+// "d": 0.2,
+// "f": 0.5,
+// "iz": 0
+// },
+// "angle": {
+// "p": 0.8,
+// "i": 0.01,
+// "d": 1,
+// "f": 0.4,
+// "iz": 0
+// }
 // }
 
 public final class Constants {
 
   public static final double ROBOT_MASS = (148 - 20.3) * 0.453592; // 32lbs * kg per pound
   public static final Matter CHASSIS = new Matter(
-    new Translation3d(0, 0, Units.inchesToMeters(8)),
-    ROBOT_MASS
-  );
-  public static final double LOOP_TIME = 0.13; //s, 20ms + 110ms sprk max velocity lag
+      new Translation3d(0, 0, Units.inchesToMeters(8)),
+      ROBOT_MASS);
+  public static final double LOOP_TIME = 0.13; // s, 20ms + 110ms sprk max velocity lag
   public static final double MAX_SPEED = Units.feetToMeters(14.5);
 
   // Maximum speed of the robot in meters per second, used to limit acceleration.
 
-  //  public static final class AutonConstants
-  //  {
+  // public static final class AutonConstants
+  // {
   //
-  //    public static final PIDConstants TRANSLATION_PID = new PIDConstants(0.7, 0, 0);
-  //    public static final PIDConstants ANGLE_PID       = new PIDConstants(0.4, 0, 0.01);
-  //  }
+  // public static final PIDConstants TRANSLATION_PID = new PIDConstants(0.7, 0,
+  // 0);
+  // public static final PIDConstants ANGLE_PID = new PIDConstants(0.4, 0, 0.01);
+  // }
 
   public static final class DrivebaseConstants {
 
@@ -68,5 +72,34 @@ public final class Constants {
     public static final double LEFT_Y_DEADBAND = 0.1;
     public static final double RIGHT_X_DEADBAND = 0.1;
     public static final double TURN_CONSTANT = 6;
+  }
+
+  public static final class HoodConstants {
+
+    // CAN IDs — change these to match your wiring
+    public static final int LEADER_MOTOR_ID = 14;
+    public static final int FOLLOWER_MOTOR_ID = 15;
+
+    // PID gains for YAMS closed-loop position control
+    public static final double kP = 1.0;
+    public static final double kI = 0.0;
+    public static final double kD = 0.1;
+
+    // Hood angular range (in degrees)
+    public static final double MIN_ANGLE_DEG = 0.0; // fully retracted
+    public static final double MAX_ANGLE_DEG = 90.0; // fully extended
+
+    // Gear ratio: motor rotations per output shaft rotation
+    public static final double GEAR_RATIO = 50.0;
+
+    // Position tolerance (degrees)
+    public static final double TOLERANCE_DEG = 3.0;
+
+    // Current limit (amps)
+    public static final int CURRENT_LIMIT = 30;
+
+    // Arm physical dimensions (for YAMS MOI estimation in sim)
+    public static final double ARM_LENGTH_INCHES = 12.0;
+    public static final double ARM_MASS_LBS = 4.4; // ~2 kg
   }
 }
