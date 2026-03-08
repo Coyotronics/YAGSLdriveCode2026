@@ -101,7 +101,7 @@ public class SwerveSubsystem extends SubsystemBase
     setupPathPlanner();
    // RobotModeTriggers.autonomous().onTrue(Commands.runOnce(this::zeroGyroWithAlliance));
 
-   swerveDrive.setModuleStateOptimization(false);
+   swerveDrive.setModuleStateOptimization(true);
     
   }
 

@@ -50,7 +50,7 @@ public class RobotContainer
   SwerveInputStream driveAngularVelocity = SwerveInputStream.of(drivebase.getSwerveDrive(),
                                                                 () -> driverXbox.getLeftY() * -1,
                                                                 () -> driverXbox.getLeftX() * -1)
-                                                            .withControllerRotationAxis(() -> driverXbox.getRawAxis(2))
+                                                            .withControllerRotationAxis(() -> driverXbox.getRawAxis(4)*-1)
                                                             .deadband(Constants.OperatorConstants.DEADBAND)
                                                             .scaleTranslation(0.8)
                                                             .allianceRelativeControl(true);
@@ -178,7 +178,7 @@ public class RobotContainer
     } else
     {
       System.out.println("Setting default command");
-      drivebase.setDefaultCommand(testCommand);
+      drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
       //drivebase.setDefaultCommand(driveFieldOrientedDirectAngleKeyboard);
       //drivebase.setDefaultCommand(driveFieldOrientedDirectAngle);
       System.out.println("I lowk did this shit");
