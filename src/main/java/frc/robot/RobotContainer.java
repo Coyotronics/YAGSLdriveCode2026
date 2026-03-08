@@ -54,6 +54,14 @@ public class RobotContainer
                                                             .deadband(Constants.OperatorConstants.DEADBAND)
                                                             .scaleTranslation(0.8)
                                                             .allianceRelativeControl(true);
+
+    SwerveInputStream test = SwerveInputStream.of(drivebase.getSwerveDrive(),
+                                                                () -> 0,
+                                                                () -> 0)
+                                                            .withControllerRotationAxis(()->0)
+                                                            .deadband(Constants.OperatorConstants.DEADBAND)
+                                                            .scaleTranslation(0.8)
+                                                            .allianceRelativeControl(true);
    
   /**
    * Clone's the angular velocity input stream and converts it to a fieldRelative input stream.
@@ -151,6 +159,8 @@ public class RobotContainer
     // .deadband(OperatorConstants.DEADBAND)
     // .scaleTranslation(0.8)
     // .headingWhile(() -> true);
+     Command testCommand = drivebase.driveFieldOriented(test);
+
 
     Command driveFieldOrientedDirectAngle      = drivebase.driveFieldOriented(driveDirectAngle);
     Command driveFieldOrientedAnglularVelocity = drivebase.driveFieldOriented(driveAngularVelocity);
@@ -168,7 +178,7 @@ public class RobotContainer
     } else
     {
       System.out.println("Setting default command");
-      drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
+      drivebase.setDefaultCommand(testCommand);
       //drivebase.setDefaultCommand(driveFieldOrientedDirectAngleKeyboard);
       //drivebase.setDefaultCommand(driveFieldOrientedDirectAngle);
       System.out.println("I lowk did this shit");
@@ -203,7 +213,7 @@ public class RobotContainer
     }
     if (DriverStation.isTest())
     {
-      drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity); // Overrides drive command above!
+      //drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity); // Overrides drive command above!
 
      // drivebase.setDefaultCommand(driveFieldOrientedDirectAngle);
 
