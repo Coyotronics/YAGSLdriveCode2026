@@ -55,7 +55,7 @@ public class RobotContainer
                                                             .withControllerRotationAxis(() -> driverXbox.getRawAxis(2))
                                                             .deadband(OperatorConstants.DEADBAND)
                                                             .scaleTranslation(0.8)
-                                                            .allianceRelativeControl(true)
+                                                            .allianceRelativeControl(true);
                                                           
    
   /**
@@ -155,13 +155,7 @@ public class RobotContainer
     Command driveSetpointGenKeyboard = drivebase.driveWithSetpointGeneratorFieldRelative(
         driveDirectAngleKeyboard);
 
-    driverXbox.y().toggleOnTrue(
-        new AlignSwerveCommand(
-          drivebase,
-          driveAngularVelocity,
-          Robot.isSimulation()
-      )
-    );
+   
 
     if (RobotBase.isSimulation())
     {
@@ -222,6 +216,13 @@ public class RobotContainer
       driverXbox.back().whileTrue(Commands.none());
       driverXbox.leftBumper().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
       driverXbox.rightBumper().onTrue(Commands.none());
+      
+       driverXbox.y().toggleOnTrue(Commands.runOnce(() -> drivebase.setDefaultCommand(
+                                    new AlignSwerveCommand(
+                                      drivebase,
+                                      driveAngularVelocity,
+                                      Robot.isSimulation()))
+        ));
     }
 
   }
