@@ -87,6 +87,8 @@ public class Robot extends TimedRobot
     // commands, running already-scheduled commands, removing finished or interrupted commands,
     // and running subsystem periodic() methods.  This must be called from the robot's periodic
     // block in order for anything in the Command-based framework to work.
+    SmartDashboard.putNumber("Robot Heading", m_robotContainer.getSwerveSubsystem().getHeading().getDegrees());
+  
     CommandScheduler.getInstance().run();
 
     //m_field.setRobotPose(m_robotContainer.drivebase.getPose());

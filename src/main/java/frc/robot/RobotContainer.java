@@ -18,9 +18,16 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+
+import frc.robot.Constants;
 import frc.robot.Constants.OperatorConstants;
+
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 import java.io.File;
+import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
+
+import swervelib.SwerveDrive;
 import swervelib.SwerveInputStream;
 
 /**
@@ -44,7 +51,7 @@ public class RobotContainer
                                                                 () -> driverXbox.getLeftY() * -1,
                                                                 () -> driverXbox.getLeftX() * -1)
                                                             .withControllerRotationAxis(() -> driverXbox.getRawAxis(2))
-                                                            .deadband(OperatorConstants.DEADBAND)
+                                                            .deadband(Constants.OperatorConstants.DEADBAND)
                                                             .scaleTranslation(0.8)
                                                             .allianceRelativeControl(true);
    
@@ -110,6 +117,41 @@ public class RobotContainer
    */
   private void configureBindings()
   {
+
+// SwerveDrive swerveDrive = drivebase.getSwerveDrive();
+//     // 1
+// Supplier<Pose2d> targetPoseSupplier = () -> vision.getTagPose(tagId);
+
+// // 2
+// DoubleSupplier xSup = () -> -driver.getLeftY();
+// DoubleSupplier ySup = () -> -driver.getLeftX();
+
+// // 3
+// DoubleSupplier headingXSup = () -> {
+//     Pose2d robot = swerveDrive.getPose();
+//     Pose2d target = targetPoseSupplier.get();
+//     double dx = target.getX() - robot.getX();
+//     double dy = target.getY() - robot.getY();
+//     double angle = Math.atan2(dy, dx);
+//     return Math.cos(angle);
+// };
+
+// DoubleSupplier headingYSup = () -> {
+//     Pose2d robot = swerveDrive.getPose();
+//     Pose2d target = targetPoseSupplier.get();
+//     double dx = target.getX() - robot.getX();
+//     double dy = target.getY() - robot.getY();
+//     double angle = Math.atan2(dy, dx);
+//     return Math.sin(angle);
+// };
+
+// 4
+// SwerveInputStream driveStream = SwerveInputStream.of(swerveDrive, xSup, ySup)
+    // .withControllerHeadingAxis(headingXSup, headingYSup)
+    // .deadband(OperatorConstants.DEADBAND)
+    // .scaleTranslation(0.8)
+    // .headingWhile(() -> true);
+
     Command driveFieldOrientedDirectAngle      = drivebase.driveFieldOriented(driveDirectAngle);
     Command driveFieldOrientedAnglularVelocity = drivebase.driveFieldOriented(driveAngularVelocity);
     Command driveRobotOrientedAngularVelocity  = drivebase.driveFieldOriented(driveRobotOriented);
@@ -197,5 +239,9 @@ public class RobotContainer
   public void setMotorBrake(boolean brake)
   {
     drivebase.setMotorBrake(brake);
+  }
+
+  public SwerveSubsystem getSwerveSubsystem() {
+    return drivebase;
   }
 }
