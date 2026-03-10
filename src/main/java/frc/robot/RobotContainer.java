@@ -129,6 +129,7 @@ public class RobotContainer
 
   public SwerveSubsystem getSwerveSubsystem() { return drivebase; }
 
+
   public void updateFakeLimelight() {
     if (RobotBase.isSimulation()) { // a little trig to get for the fake lime light
       double deltaX = targetPos.getX() - drivebase.getPose().getX();
@@ -136,8 +137,8 @@ public class RobotContainer
 
       double angleToTarget = Math.atan2(deltaY, deltaX);
 
-      double robotHeading = drivebase.getHeading().getRadians();
-
+      double robotHeading = drivebase.getPose().getRotation().getRadians();
+      
       double tx = Math.toDegrees(angleToTarget - robotHeading);
 
       // put tha shi between -180 and 180
