@@ -52,11 +52,12 @@ public class RobotContainer
   SwerveInputStream driveAngularVelocity = SwerveInputStream.of(drivebase.getSwerveDrive(),
                                                                 () -> driverXbox.getLeftY() * -1,
                                                                 () -> driverXbox.getLeftX() * -1)
+                                                            .withControllerHeadingAxis(driverXbox::getRightX, driverXbox::getRightY)
+                                                            .headingWhile(true)
                                                             .withControllerRotationAxis(() -> driverXbox.getRawAxis(2))
                                                             .deadband(OperatorConstants.DEADBAND)
                                                             .scaleTranslation(0.8)
-                                                            .allianceRelativeControl(true)
-                                                          
+                                                            .allianceRelativeControl(true);
    
   /**
    * Clone's the angular velocity input stream and converts it to a fieldRelative input stream.
