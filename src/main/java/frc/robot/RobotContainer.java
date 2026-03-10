@@ -23,11 +23,18 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+
+import frc.robot.Constants;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.AlignSwerveCommand;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 import java.io.File;
 import java.time.Period;
+
+import frc.robot.subsystems.swervedrive.SwerveSubsystem;
+import java.io.File;
+import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 
 import swervelib.SwerveDrive;
 import swervelib.SwerveInputStream;
@@ -43,7 +50,7 @@ public class RobotContainer
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController driverXbox = new CommandXboxController(0);
   // The robot's subsystems and commands are defined here...
-  private final SwerveSubsystem       drivebase  = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
+  public final SwerveSubsystem       drivebase  = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
                                                                                 "swerve/neo"));
 
   /**
@@ -52,10 +59,16 @@ public class RobotContainer
   SwerveInputStream driveAngularVelocity = SwerveInputStream.of(drivebase.getSwerveDrive(),
                                                                 () -> driverXbox.getLeftY() * -1,
                                                                 () -> driverXbox.getLeftX() * -1)
-                                                            .withControllerHeadingAxis(driverXbox::getRightX, driverXbox::getRightY)
-                                                            .headingWhile(true)
-                                                            .withControllerRotationAxis(() -> driverXbox.getRawAxis(2))
-                                                            .deadband(OperatorConstants.DEADBAND)
+                                                            .withControllerRotationAxis(() -> driverXbox.getRawAxis(4)*-1)
+                                                            .deadband(Constants.OperatorConstants.DEADBAND)
+                                                            .scaleTranslation(0.8)
+                                                            .allianceRelativeControl(true);
+
+    SwerveInputStream test = SwerveInputStream.of(drivebase.getSwerveDrive(),
+                                                                () -> 0,
+                                                                () -> 0)
+                                                            .withControllerRotationAxis(()->0)
+                                                            .deadband(Constants.OperatorConstants.DEADBAND)
                                                             .scaleTranslation(0.8)
                                                             .allianceRelativeControl(true);
    
@@ -86,7 +99,7 @@ public class RobotContainer
                                                                                                               Math.sin(
                                                                                                                   driverXbox.getRawAxis(
                                                                                                                       2) *
-                                                                                                                  Math.PI) *
+                                                                                                                    Math.PI) *
                                                                                                               (Math.PI *
                                                                                                                2),
                                                                                                           () ->
@@ -146,6 +159,43 @@ public class RobotContainer
    */
   private void configureBindings()
   {
+
+// SwerveDrive swerveDrive = drivebase.getSwerveDrive();
+//     // 1
+// Supplier<Pose2d> targetPoseSupplier = () -> vision.getTagPose(tagId);
+
+// // 2
+// DoubleSupplier xSup = () -> -driver.getLeftY();
+// DoubleSupplier ySup = () -> -driver.getLeftX();
+
+// // 3
+// DoubleSupplier headingXSup = () -> {
+//     Pose2d robot = swerveDrive.getPose();
+//     Pose2d target = targetPoseSupplier.get();
+//     double dx = target.getX() - robot.getX();
+//     double dy = target.getY() - robot.getY();
+//     double angle = Math.atan2(dy, dx);
+//     return Math.cos(angle);
+// };
+
+// DoubleSupplier headingYSup = () -> {
+//     Pose2d robot = swerveDrive.getPose();
+//     Pose2d target = targetPoseSupplier.get();
+//     double dx = target.getX() - robot.getX();
+//     double dy = target.getY() - robot.getY();
+//     double angle = Math.atan2(dy, dx);
+//     return Math.sin(angle);
+// };
+
+// 4
+// SwerveInputStream driveStream = SwerveInputStream.of(swerveDrive, xSup, ySup)
+    // .withControllerHeadingAxis(headingXSup, headingYSup)
+    // .deadband(OperatorConstants.DEADBAND)
+    // .scaleTranslation(0.8)
+    // .headingWhile(() -> true);
+     Command testCommand = drivebase.driveFieldOriented(test);
+
+
     Command driveFieldOrientedDirectAngle      = drivebase.driveFieldOriented(driveDirectAngle);
     Command driveFieldOrientedAnglularVelocity = drivebase.driveFieldOriented(driveAngularVelocity);
     Command driveRobotOrientedAngularVelocity  = drivebase.driveFieldOriented(driveRobotOriented);
@@ -169,7 +219,9 @@ public class RobotContainer
       drivebase.setDefaultCommand(driveFieldOrientedDirectAngleKeyboard);
     } else
     {
+      System.out.println("Setting default command");
       drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
+      //drivebase.setDefaultCommand(driveFieldOrientedDirectAngleKeyboard);
       //drivebase.setDefaultCommand(driveFieldOrientedDirectAngle);
       System.out.println("I lowk did this shit");
     }
@@ -205,7 +257,7 @@ public class RobotContainer
     }
     if (DriverStation.isTest())
     {
-      drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity); // Overrides drive command above!
+      //drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity); // Overrides drive command above!
 
      // drivebase.setDefaultCommand(driveFieldOrientedDirectAngle);
 
