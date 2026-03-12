@@ -52,7 +52,7 @@ public class RobotContainer
                                                                 () -> driverXbox.getLeftX() * -1)
                                                             .withControllerRotationAxis(() -> driverXbox.getRawAxis(4)*-1)
                                                             .deadband(Constants.OperatorConstants.DEADBAND)
-                                                            .scaleTranslation(0.8)
+                                                            .scaleTranslation(0.9)
                                                             .allianceRelativeControl(true);
 
     SwerveInputStream test = SwerveInputStream.of(drivebase.getSwerveDrive(),
@@ -60,7 +60,7 @@ public class RobotContainer
                                                                 () -> 0)
                                                             .withControllerRotationAxis(()->0)
                                                             .deadband(Constants.OperatorConstants.DEADBAND)
-                                                            .scaleTranslation(0.8)
+                                                            .scaleTranslation(0.9)
                                                             .allianceRelativeControl(true);
    
   /**
