@@ -4,39 +4,28 @@
 
 package frc.robot;
 
-import com.pathplanner.lib.auto.NamedCommands;
-
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.RobotBase;
-import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
-import frc.robot.Constants;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.AlignSwerveCommand;
+import frc.robot.simulation.Simulation;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 import java.io.File;
-import java.time.Period;
 
-import frc.robot.subsystems.swervedrive.SwerveSubsystem;
-import java.io.File;
-import java.util.function.DoubleSupplier;
-import java.util.function.Supplier;
-
-import swervelib.SwerveDrive;
 import swervelib.SwerveInputStream;
 
 /**
@@ -95,27 +84,12 @@ public class RobotContainer
                                                                     .headingWhile(false);
   // Derive the heading axis with math!
   SwerveInputStream driveDirectAngleKeyboard     = driveAngularVelocityKeyboard.copy()
-                                                                               .withControllerHeadingAxis(() ->
-                                                                                                              Math.sin(
-                                                                                                                  driverXbox.getRawAxis(
-                                                                                                                      2) *
-                                                                                                                    Math.PI) *
-                                                                                                              (Math.PI *
-                                                                                                               2),
-                                                                                                          () ->
-                                                                                                              Math.cos(
-                                                                                                                  driverXbox.getRawAxis(
-                                                                                                                      2) *
-                                                                                                                  Math.PI) *
-                                                                                                              (Math.PI *
-                                                                                                               2))
+                                                                               .withControllerHeadingAxis(() -> Math.sin(driverXbox.getRawAxis(2) * Math.PI) * (Math.PI * 2),
+                                                                                                          () -> Math.cos(driverXbox.getRawAxis(2) * Math.PI) * (Math.PI * 2))
                                                                                .headingWhile(true)
                                                                                .translationHeadingOffset(true)
                                                                                .translationHeadingOffset(Rotation2d.fromDegrees(
                                                                                    0));
-
-  private final double targetHeight = 5; // placeholder for later
-  private final Translation3d targetPos = new Translation3d(11.95, 4, targetHeight); // for simulation (z is a placeholder though should prob not be for simulation)
 
   /**
    * The container for the robot. Contains subsystems, OI devices, and commands.
@@ -128,28 +102,6 @@ public class RobotContainer
   }
 
   public SwerveSubsystem getSwerveSubsystem() { return drivebase; }
-
-
-  public void updateFakeLimelight() {
-    if (RobotBase.isSimulation()) { // a little trig to get for the fake lime light
-      double deltaX = targetPos.getX() - drivebase.getPose().getX();
-      double deltaY = targetPos.getY() - drivebase.getPose().getY();
-
-      double angleToTarget = Math.atan2(deltaY, deltaX);
-
-      double robotHeading = drivebase.getPose().getRotation().getRadians();
-      
-      double tx = Math.toDegrees(angleToTarget - robotHeading);
-
-      // put tha shi between -180 and 180
-      tx = MathUtil.inputModulus(tx, -180, 180);
-      
-      FakeLimelight.setTX(tx);
-      FakeLimelight.setHasTarget(true);
-
-      drivebase.getSwerveDrive().field.getObject("Target Point").setPose(new Pose2d(targetPos.getX(), targetPos.getY(), new Rotation2d()));
-    }
-  }
 
   /**
    * Use this method to define your trigger->command mappings. Triggers can be created via the
@@ -243,7 +195,7 @@ public class RobotContainer
                                                                      new Constraints(Units.degreesToRadians(360),
                                                                                      Units.degreesToRadians(180))
                                            ));
-      driverXbox.start().onTrue(Commands.runOnce(() -> drivebase.resetOdometry(new Pose2d(3, 3, new Rotation2d()))));
+      driverXbox.start().onTrue(Commands.runOnce(() -> drivebase.resetOdometry(new Pose2d(3, 6, new Rotation2d()))));
       driverXbox.button(1).whileTrue(drivebase.sysIdDriveMotorCommand());
       driverXbox.button(2).whileTrue(Commands.runEnd(() -> driveDirectAngleKeyboard.driveToPoseEnabled(true),
                                                      () -> driveDirectAngleKeyboard.driveToPoseEnabled(false)));
@@ -254,6 +206,10 @@ public class RobotContainer
 //          drivebase.driveToPose(
 //              new Pose2d(new Translation2d(4, 4), Rotation2d.fromDegrees(0)))
 //                              );
+      driverXbox.x().onTrue(Commands.runOnce(() -> {
+          Pose2d robotPose = drivebase.getSwerveDrive().getSimulationDriveTrainPose().orElse(drivebase.getPose());
+          Simulation.shootBall(new Pose3d(robotPose.getX(), robotPose.getY(), 0, new Rotation3d(robotPose.getRotation())));
+      }));
 
     }
     if (DriverStation.isTest())

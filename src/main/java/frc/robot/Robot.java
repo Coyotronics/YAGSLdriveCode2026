@@ -4,16 +4,19 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.simulation.Simulation;
 
 /**
  * The VM is configured to automatically run this class, and to call the functions corresponding to each mode, as
@@ -30,6 +33,10 @@ public class Robot extends TimedRobot
 
   private Timer disabledTimer;
 
+  private final double targetHeight = 1.5;
+  private final Translation3d targetPos = new Translation3d(11.95, 4, targetHeight);
+  private StructPublisher<Pose3d> targetPublisher;
+
   public Robot()
   {
     instance = this;
@@ -44,8 +51,8 @@ public class Robot extends TimedRobot
    * This function is run when the robot is first started up and should be used for any initialization code.
    */
 
-   private StructPublisher<Pose3d> posePub;
-    private final Field2d m_field = new Field2d();
+   private StructPublisher<Pose3d> posePublisher;
+   
   @Override
   public void robotInit()
   {
@@ -63,12 +70,16 @@ public class Robot extends TimedRobot
     // immediately when disabled, but then also let it be pushed more 
     disabledTimer = new Timer();
 
-    posePub = NetworkTableInstance.getDefault()
-            .getStructTopic("Sim/MyPose", Pose3d.struct)
-            .publish();
+    posePublisher = NetworkTableInstance.getDefault().getStructTopic("Sim/My Pose", Pose3d.struct).publish();
 
     if (isSimulation())
     {
+      Simulation.init();
+
+      targetPublisher = NetworkTableInstance.getDefault().getStructTopic("Sim/Target Pose", Pose3d.struct).publish();
+
+      targetPublisher.set(new Pose3d(targetPos.getX(), targetPos.getY(), targetPos.getZ(), new Rotation3d()));
+
       DriverStation.silenceJoystickConnectionWarning(true);
     }
   }
@@ -89,13 +100,62 @@ public class Robot extends TimedRobot
     // block in order for anything in the Command-based framework to work.
     SmartDashboard.putNumber("Robot Heading", m_robotContainer.getSwerveSubsystem().getHeading().getDegrees());
     
-    m_robotContainer.updateFakeLimelight();
-  
+    if (isSimulation()) {
+      Simulation.updateFakeLimelight(targetPos, m_robotContainer.getSwerveSubsystem());
+
+      // too lazy to make it better rn
+      double heightHalf = 0.541 / 2;
+      double widthHalf = 0.686 / 2;
+      double lengthHalf = 0.504 / 2;
+
+      Translation3d[] points = new Translation3d[8];
+
+      points[0] = new Translation3d(lengthHalf, widthHalf, 2 * heightHalf);
+      points[1] = new Translation3d(lengthHalf, widthHalf, 0);
+      points[2] = new Translation3d(lengthHalf, -widthHalf, 2 * heightHalf);
+      points[3] = new Translation3d(lengthHalf, -widthHalf, 0);
+      points[4] = new Translation3d(-lengthHalf, widthHalf, 2 * heightHalf);
+      points[5] = new Translation3d(-lengthHalf, widthHalf, 0);
+      points[6] = new Translation3d(-lengthHalf, -widthHalf, 2 * heightHalf);
+      points[7] = new Translation3d(-lengthHalf, -widthHalf, 0);
+
+      Translation3d[] intakePoints = new Translation3d[8];
+
+      intakePoints[0] = new Translation3d(lengthHalf, -widthHalf, 2 * heightHalf);
+      intakePoints[1] = new Translation3d(lengthHalf, -widthHalf, 0);
+      intakePoints[2] = new Translation3d(lengthHalf, -widthHalf - 0.25, 2 * heightHalf);
+      intakePoints[3] = new Translation3d(lengthHalf, -widthHalf - 0.25, 0);
+      intakePoints[4] = new Translation3d(-lengthHalf, -widthHalf, 2 * heightHalf);
+      intakePoints[5] = new Translation3d(-lengthHalf, -widthHalf, 0);
+      intakePoints[6] = new Translation3d(-lengthHalf, -widthHalf -0.25, 2 * heightHalf);
+      intakePoints[7] = new Translation3d(-lengthHalf, -widthHalf - 0.25, 0);
+
+      Pose2d robotPose = m_robotContainer.getSwerveSubsystem().getSwerveDrive()
+        .getSimulationDriveTrainPose()
+        .orElse(m_robotContainer.getSwerveSubsystem().getPose());
+      
+      for (int i = 0; i < points.length; i++) {
+          SmartDashboard.putNumber("Point" + i + " X", points[i].getX() + robotPose.getX());
+          SmartDashboard.putNumber("Point" + i + " Y", points[i].getY() + robotPose.getY());
+          SmartDashboard.putNumber("Point" + i + " Z", points[i].getZ()); 
+      }
+
+      Pose3d robotOrigin3d = new Pose3d(
+          robotPose.getX(),
+          robotPose.getY(),
+          0,
+          new Rotation3d(robotPose.getRotation())
+      );
+
+      Simulation.updateBalls(points, intakePoints, robotOrigin3d);
+      Simulation.updateVertexPositionsAdvantageScope(points, intakePoints, robotOrigin3d);
+      Simulation.updateBallPositionsAdvantageScope();
+
+   
+      posePublisher.set(robotOrigin3d);
+    }
+
     CommandScheduler.getInstance().run();
-
-    //System.out.println("Everything zerox2");
-
-    //m_field.setRobotPose(m_robotContainer.drivebase.getPose());
   }
 
   /**
