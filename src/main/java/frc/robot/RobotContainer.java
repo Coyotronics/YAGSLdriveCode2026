@@ -4,7 +4,8 @@
 
 package frc.robot;
 
-import com.pathplanner.lib.auto.NamedCommands;
+import java.io.File;
+
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -18,16 +19,11 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-
-import frc.robot.Constants;
 import frc.robot.Constants.OperatorConstants;
-
+import frc.robot.subsystems.RollerSubsystem;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
-import java.io.File;
-import java.util.function.DoubleSupplier;
-import java.util.function.Supplier;
 
-import swervelib.SwerveDrive;
+
 import swervelib.SwerveInputStream;
 
 /**
@@ -43,6 +39,8 @@ public class RobotContainer
   // The robot's subsystems and commands are defined here...
   public final SwerveSubsystem       drivebase  = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
                                                                                 "swerve/neo"));
+  public final RollerSubsystem      Conveyor      = new RollerSubsystem();
+
 
   /**
    * Converts driver input into a field-relative ChassisSpeeds that is controlled by angular velocity.
@@ -113,10 +111,48 @@ public class RobotContainer
     // Configure the trigger bindings
     configureBindings();
     DriverStation.silenceJoystickConnectionWarning(true);
-    
-  }
 
-  /**
+    defaultCommands();
+        
+  }
+    
+  private void defaultCommands() {
+
+    Command testCommand = drivebase.driveFieldOriented(test);
+    Command driveFieldOrientedDirectAngle      = drivebase.driveFieldOriented(driveDirectAngle);
+    Command driveFieldOrientedAnglularVelocity = drivebase.driveFieldOriented(driveAngularVelocity);
+    Command driveRobotOrientedAngularVelocity  = drivebase.driveFieldOriented(driveRobotOriented);
+    Command driveSetpointGen = drivebase.driveWithSetpointGeneratorFieldRelative(
+        driveDirectAngle);
+    Command driveFieldOrientedDirectAngleKeyboard      = drivebase.driveFieldOriented(driveDirectAngleKeyboard);
+    Command driveFieldOrientedAnglularVelocityKeyboard = drivebase.driveFieldOriented(driveAngularVelocityKeyboard);
+    Command driveSetpointGenKeyboard = drivebase.driveWithSetpointGeneratorFieldRelative(
+        driveDirectAngleKeyboard);
+
+     if (RobotBase.isSimulation())
+    {
+      drivebase.setDefaultCommand(driveFieldOrientedDirectAngleKeyboard);
+    } else
+    {
+      System.out.println("Setting default command");
+      //drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
+      //drivebase.setDefaultCommand(driveFieldOrientedDirectAngleKeyboard);
+      //drivebase.setDefaultCommand(driveFieldOrientedDirectAngle);
+      System.out.println("I lowk did this shit");
+    }
+
+
+    Conveyor.setDefaultCommand(
+             Commands.run(() -> Conveyor.setDutyCycleSetpoint(
+                                Math.max(-1, Math.min(1, -1*driverXbox.getRightTriggerAxis()))
+                                ), Conveyor));
+
+    
+
+
+  }
+    
+      /**
    * Use this method to define your trigger->command mappings. Triggers can be created via the
    * {@link Trigger#Trigger(java.util.function.BooleanSupplier)} constructor with an arbitrary predicate, or via the
    * named factories in {@link edu.wpi.first.wpilibj2.command.button.CommandGenericHID}'s subclasses for
@@ -159,30 +195,9 @@ public class RobotContainer
     // .deadband(OperatorConstants.DEADBAND)
     // .scaleTranslation(0.8)
     // .headingWhile(() -> true);
-     Command testCommand = drivebase.driveFieldOriented(test);
 
 
-    Command driveFieldOrientedDirectAngle      = drivebase.driveFieldOriented(driveDirectAngle);
-    Command driveFieldOrientedAnglularVelocity = drivebase.driveFieldOriented(driveAngularVelocity);
-    Command driveRobotOrientedAngularVelocity  = drivebase.driveFieldOriented(driveRobotOriented);
-    Command driveSetpointGen = drivebase.driveWithSetpointGeneratorFieldRelative(
-        driveDirectAngle);
-    Command driveFieldOrientedDirectAngleKeyboard      = drivebase.driveFieldOriented(driveDirectAngleKeyboard);
-    Command driveFieldOrientedAnglularVelocityKeyboard = drivebase.driveFieldOriented(driveAngularVelocityKeyboard);
-    Command driveSetpointGenKeyboard = drivebase.driveWithSetpointGeneratorFieldRelative(
-        driveDirectAngleKeyboard);
-
-    if (RobotBase.isSimulation())
-    {
-      drivebase.setDefaultCommand(driveFieldOrientedDirectAngleKeyboard);
-    } else
-    {
-      System.out.println("Setting default command");
-      drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
-      //drivebase.setDefaultCommand(driveFieldOrientedDirectAngleKeyboard);
-      //drivebase.setDefaultCommand(driveFieldOrientedDirectAngle);
-      System.out.println("I lowk did this shit");
-    }
+   
 
     if (Robot.isSimulation())
     {
@@ -211,27 +226,14 @@ public class RobotContainer
 //                              );
 
     }
-    if (DriverStation.isTest())
+    else
     {
-      //drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity); // Overrides drive command above!
+      
 
-     // drivebase.setDefaultCommand(driveFieldOrientedDirectAngle);
+    
 
-      driverXbox.x().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
-      driverXbox.y().whileTrue(drivebase.driveToDistanceCommand(1.0, 0.2));
-      driverXbox.start().onTrue((Commands.runOnce(drivebase::zeroGyro)));
-      driverXbox.back().whileTrue(drivebase.centerModulesCommand());
-      driverXbox.leftBumper().onTrue(Commands.none());
-      driverXbox.rightBumper().onTrue(Commands.none());
-    } else
-    {
-      driverXbox.a().onTrue((Commands.runOnce(drivebase::zeroGyro)));
-      //driverXbox.x().onTrue(Commands.runOnce(drivebase::addFakeVisionReading));
-      driverXbox.start().whileTrue(Commands.none());
-      driverXbox.back().whileTrue(Commands.none());
-      driverXbox.leftBumper().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
-      driverXbox.rightBumper().onTrue(Commands.none());
     }
+    
 
   }
 
