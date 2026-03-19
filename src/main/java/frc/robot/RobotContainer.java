@@ -6,6 +6,7 @@ package frc.robot;
 
 import java.io.File;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -21,6 +22,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.subsystems.RollerSubsystem;
+import frc.robot.subsystems.ShooterFlywheel;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 
 
@@ -40,6 +42,7 @@ public class RobotContainer
   public final SwerveSubsystem       drivebase  = new SwerveSubsystem(new File(Filesystem.getDeployDirectory(),
                                                                                 "swerve/neo"));
   public final RollerSubsystem      Conveyor      = new RollerSubsystem();
+  public final ShooterFlywheel      ShooterFlywheel = new ShooterFlywheel();
 
 
   /**
@@ -135,7 +138,7 @@ public class RobotContainer
     } else
     {
       System.out.println("Setting default command");
-      //drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
+      drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
       //drivebase.setDefaultCommand(driveFieldOrientedDirectAngleKeyboard);
       //drivebase.setDefaultCommand(driveFieldOrientedDirectAngle);
       System.out.println("I lowk did this shit");
@@ -144,11 +147,16 @@ public class RobotContainer
 
     Conveyor.setDefaultCommand(
              Commands.run(() -> Conveyor.setDutyCycleSetpoint(
-                                Math.max(-1, Math.min(1, -1*driverXbox.getRightTriggerAxis()))
+                                Math.max(-1, Math.min(1, -1*driverXbox.getLeftTriggerAxis()))
                                 ), Conveyor));
 
-    
+    ShooterFlywheel.setDefaultCommand(
+             Commands.run(() -> ShooterFlywheel.setBothDutyCycleSetpoint(
+                                Math.max(-1, Math.min(1, driverXbox.getRightTriggerAxis()))
+                                ), ShooterFlywheel));
 
+    
+  
 
   }
     

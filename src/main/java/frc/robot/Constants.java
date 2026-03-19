@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import com.thethriftybot.server.CAN;
+
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import swervelib.math.Matter;
@@ -56,4 +58,31 @@ public final class Constants
     public static final double RIGHT_X_DEADBAND = 0.1;
     public static final double TURN_CONSTANT    = 6;
   }
+
+public static boolean[] CANids = new boolean[63];
+
+static {
+  CANids[36] = true; // drivebase backleft drive
+  CANids[12] = true; // drivebase backleft steer
+
+  CANids[22] = true; // drivebase backright drive
+  CANids[37] = true; // drivebase backright steer
+
+  CANids[5] = true;  // drivebase frontleft drive
+  CANids[10] = true; // drivebase frontleft steer
+
+  CANids[45] = true; // drivebase frontright drive
+  CANids[20] = true; // drivebase frontright steer
+
+  CANids[23] = true; // conveyor left
+  CANids[7] = true;  // conveyor right
+
+  CANids[13] = true; // shooter top flywheel left
+  CANids[60] = true; // shooter top flywheel right
+  CANids[46] = true; // shooter bottom flywheel right
+  CANids[39] = true; // shooter bottom flywheel left
+
+  CANids[47] = true; // hood 
+}
+
 }
