@@ -59,42 +59,42 @@ public class RollerSubsystem extends SubsystemBase {
                     .withMass(Pounds.of(0.4516))
                     .withTelemetry("Flywheel", TelemetryVerbosity.HIGH);
 
-    private final FlyWheel flywheel = new FlyWheel(flywheelConfig);
+    private final FlyWheel conevyor = new FlyWheel(flywheelConfig);
 
     public RollerSubsystem() {
     }
 
     public AngularVelocity getRPM() {
-        return flywheel.getSpeed();
+        return conevyor.getSpeed();
     }
 
     public Command setVelocityommand(AngularVelocity velocity) {
-        return flywheel.setSpeed(velocity);
+        return conevyor.setSpeed(velocity);
     }
 
     public void setVelocitySetpoint(AngularVelocity velocity)
     {
-        flywheel.setMechanismVelocitySetpoint(velocity);
+        conevyor.setMechanismVelocitySetpoint(velocity);
     }
 
     public Command setDutyCycle(double dutyCycle) {
-        return flywheel.set(dutyCycle);
+        return conevyor.set(dutyCycle);
     }
 
     public Command stopCommand() {
-        return flywheel.set(0);
+        return conevyor.set(0);
     }
 
     public void periodic() {
-        flywheel.updateTelemetry();
+        conevyor.updateTelemetry();
     }
 
     public void simulationPeriodic() {
-        flywheel.simIterate();
+        conevyor.simIterate();
     }
 
     public void setDutyCycleSetpoint(double dutyCycle) {
-         flywheel.setDutyCycleSetpoint(dutyCycle);
+         conevyor.setDutyCycleSetpoint(dutyCycle);
     }
 
 

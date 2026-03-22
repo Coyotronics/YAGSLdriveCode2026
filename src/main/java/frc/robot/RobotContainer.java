@@ -5,6 +5,7 @@
 package frc.robot;
 
 import java.io.File;
+import java.util.function.Supplier;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
@@ -13,6 +14,8 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.Measure;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -21,9 +24,13 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.OperatorConstants;
+import frc.robot.subsystems.HoodSubsystem;
+import frc.robot.subsystems.IntakeArm;
 import frc.robot.subsystems.RollerSubsystem;
 import frc.robot.subsystems.ShooterFlywheel;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
+
+import static edu.wpi.first.units.Units.*;
 
 
 import swervelib.SwerveInputStream;
@@ -43,6 +50,9 @@ public class RobotContainer
                                                                                 "swerve/neo"));
   public final RollerSubsystem      Conveyor      = new RollerSubsystem();
   public final ShooterFlywheel      ShooterFlywheel = new ShooterFlywheel();
+
+  public final HoodSubsystem      HoodSubsystem = new HoodSubsystem();
+  public final IntakeArm          IntakeArm = new IntakeArm();
 
 
   /**
@@ -145,15 +155,29 @@ public class RobotContainer
     }
 
 
-    Conveyor.setDefaultCommand(
-             Commands.run(() -> Conveyor.setDutyCycleSetpoint(
-                                Math.max(-1, Math.min(1, -1*driverXbox.getLeftTriggerAxis()))
-                                ), Conveyor));
+    // Conveyor.setDefaultCommand(
+    //          Commands.run(() -> Conveyor.setDutyCycleSetpoint(
+    //                             Math.max(-1, Math.min(1, -1*driverXbox.getRightTriggerAxis()))
+    //                             ), Conveyor));
 
-    ShooterFlywheel.setDefaultCommand(
-             Commands.run(() -> ShooterFlywheel.setBothDutyCycleSetpoint(
-                                Math.max(-1, Math.min(1, driverXbox.getRightTriggerAxis()))
-                                ), ShooterFlywheel));
+    // ShooterFlywheel.setDefaultCommand(
+    //          Commands.run(() -> ShooterFlywheel.setBothDutyCycleSetpoint(
+    //                             Math.max(-1, Math.min(1, driverXbox.getRightTriggerAxis()))
+    //                             ), ShooterFlywheel));
+
+    
+    Conveyor.setDefaultCommand(Commands.run(() -> Conveyor.setDutyCycle(0), Conveyor));
+
+    ShooterFlywheel.setDefaultCommand(Commands.run(() -> ShooterFlywheel.setBothDutyCycleSetpoint(0), ShooterFlywheel));
+
+    
+   
+
+    HoodSubsystem.setDefaultCommand(Commands.run(() -> HoodSubsystem.setVelocity(0), HoodSubsystem));
+
+    IntakeArm.setDefaultCommand(Commands.run(() -> IntakeArm.setVelocity(0), IntakeArm));
+
+    
 
     
   
@@ -207,40 +231,60 @@ public class RobotContainer
 
    
 
-    if (Robot.isSimulation())
-    {
-      Pose2d target = new Pose2d(new Translation2d(1, 4),
-                                 Rotation2d.fromDegrees(90));
-      //drivebase.getSwerveDrive().field.getObject("targetPose").setPose(target);
-      driveDirectAngleKeyboard.driveToPose(() -> target,
-                                           new ProfiledPIDController(5,
-                                                                     0,
-                                                                     0,
-                                                                     new Constraints(5, 2)),
-                                           new ProfiledPIDController(5,
-                                                                     0,
-                                                                     0,
-                                                                     new Constraints(Units.degreesToRadians(360),
-                                                                                     Units.degreesToRadians(180))
-                                           ));
-      driverXbox.start().onTrue(Commands.runOnce(() -> drivebase.resetOdometry(new Pose2d(3, 3, new Rotation2d()))));
-      driverXbox.button(1).whileTrue(drivebase.sysIdDriveMotorCommand());
-      driverXbox.button(2).whileTrue(Commands.runEnd(() -> driveDirectAngleKeyboard.driveToPoseEnabled(true),
-                                                     () -> driveDirectAngleKeyboard.driveToPoseEnabled(false)));
+    // if (Robot.isSimulation())
+    // {
+    //   Pose2d target = new Pose2d(new Translation2d(1, 4),
+    //                              Rotation2d.fromDegrees(90));
+    //   //drivebase.getSwerveDrive().field.getObject("targetPose").setPose(target);
+    //   driveDirectAngleKeyboard.driveToPose(() -> target,
+    //                                        new ProfiledPIDController(5,
+    //                                                                  0,
+    //                                                                  0,
+    //                                                                  new Constraints(5, 2)),
+    //                                        new ProfiledPIDController(5,
+    //                                                                  0,
+    //                                                                  0,
+    //                                                                  new Constraints(Units.degreesToRadians(360),
+    //                                                                                  Units.degreesToRadians(180))
+    //                                        ));
+    //   driverXbox.start().onTrue(Commands.runOnce(() -> drivebase.resetOdometry(new Pose2d(3, 3, new Rotation2d()))));
+    //   driverXbox.button(1).whileTrue(drivebase.sysIdDriveMotorCommand());
+    //   driverXbox.button(2).whileTrue(Commands.runEnd(() -> driveDirectAngleKeyboard.driveToPoseEnabled(true),
+    //                                                  () -> driveDirectAngleKeyboard.driveToPoseEnabled(false)));
+  
 
-//      driverXbox.b().whileTrue(
-//          drivebase.driveToPose(
-//              new Pose2d(new Translation2d(4, 4), Rotation2d.fromDegrees(0)))
-//                              );
 
-    }
-    else
-    {
-      
+    //   driverXbox.povUp().whileTrue(Commands.run(() -> HoodSubsystem.setVelocity(10), HoodSubsystem));
+    //   driverXbox.povDown().whileTrue(Commands.run(() -> HoodSubsystem.setVelocity(-10), HoodSubsystem));
 
-    
+    // }
+    // else
+    // {
 
-    }
+      driverXbox.povUp().whileTrue(Commands.run(() -> 
+                                              {HoodSubsystem.setVelocity(10);
+                                                System.out.println("Hood set to 10");}, HoodSubsystem));
+      driverXbox.povDown().whileTrue(Commands.run(() -> 
+                                                 {HoodSubsystem.setVelocity(-10);
+                                                   System.out.println("Hood set to -10");}, HoodSubsystem));
+
+      driverXbox.rightTrigger(0.05).whileTrue(Commands.run(() -> 
+                                              {ShooterFlywheel.setBothDutyCycleSetpoint(
+                                                  Math.max(-1, Math.min(1, driverXbox.getRightTriggerAxis())));
+                                                System.out.println("Shooter set to " + driverXbox.getRightTriggerAxis());}, ShooterFlywheel));
+          
+      driverXbox.leftTrigger(0.05).whileTrue(Commands.run(() -> 
+                                              {Conveyor.setDutyCycle(
+                                                  Math.max(-1, Math.min(1, driverXbox.getLeftTriggerAxis())));
+                                                System.out.println("Conveyor set to " + driverXbox.getLeftTriggerAxis());}, ShooterFlywheel));
+      driverXbox.povRight().whileTrue(Commands.run(() -> 
+                                              {IntakeArm.setVelocity(10);
+                                                System.out.println("Intake Arm set to 10");}, IntakeArm));                                
+
+      driverXbox.povLeft().whileTrue(Commands.run(() -> 
+                                              {IntakeArm.setVelocity(-10);
+                                                System.out.println("Intake Arm set to -10");}, IntakeArm));
+
     
 
   }
