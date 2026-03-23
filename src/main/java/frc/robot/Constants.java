@@ -44,6 +44,7 @@ public final class Constants
   public static String limelightName = "limelight";
   public static Pose3d cameraOffsetFromRobotCenter;
   public static Translation3d turretPivotCenterFromCamera;
+public static String photonCameraName;
 
   public static final class DrivebaseConstants
   {
