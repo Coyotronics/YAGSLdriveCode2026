@@ -1,5 +1,6 @@
 package frc.robot.simulation;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -12,6 +13,7 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 
@@ -35,6 +37,12 @@ public class Simulation {
 
     private static StructArrayPublisher<Pose3d> intakePublisher;
 
+    private static StructArrayPublisher<Pose3d> fieldVertexPublisher;
+
+    private static List<Translation3d[]> fieldTriangles = new ArrayList<>();
+
+    private static StructArrayPublisher<Pose3d> fieldTrianglePublisher;
+
     private static List<Ball> balls = new ArrayList<>();
     private static List<Ball> storage = new ArrayList<>();
 
@@ -42,6 +50,8 @@ public class Simulation {
     private static double shootSpeed = 0.0; // speed, not velocity since velocity is a vector
 
     public static final Translation3d shooterPosition = new Translation3d(0.0, 0.0, 0.0);
+
+    private static FieldCollisionLoader.SpatialGrid fieldGrid;
 
     public static void init() {
         // making balls in the center
@@ -78,8 +88,70 @@ public class Simulation {
         ballPublisher = NetworkTableInstance.getDefault().getStructArrayTopic("/Field/Ball Positions", Pose3d.struct).publish();
         vertexPublisher = NetworkTableInstance.getDefault().getStructArrayTopic("/Field/Robot Vertices", Pose3d.struct).publish();
         intakePublisher = NetworkTableInstance.getDefault().getStructArrayTopic("/Field/Robot Intake", Pose3d.struct).publish();
-    }
 
+        fieldVertexPublisher = NetworkTableInstance.getDefault().getStructArrayTopic("/Field/Field Vertices", Pose3d.struct).publish();
+    
+        File stlVertFile = new File(Filesystem.getDeployDirectory(), "assets/field_model.stl");
+        Pose3d[] verts = FieldCollisionLoader.getFieldVerticesAsPose3d(stlVertFile);
+        int sampleCount = Math.min(500, verts.length);
+        Pose3d[] sampleVert = new Pose3d[sampleCount];
+        for (int i = 0; i < sampleCount; i++) {
+            sampleVert[i] = verts[(int) ((long) i * verts.length / sampleCount)];
+        }
+        System.out.println("[FieldCollision] Publishing " + sampleVert.length + " sampled vertices (of " + verts.length + " total)");
+        fieldVertexPublisher.set(sampleVert);
+        
+        fieldTrianglePublisher = NetworkTableInstance.getDefault().getStructArrayTopic("/Field/Field Triangles", Pose3d.struct).publish();
+
+        File stlFile = new File(Filesystem.getDeployDirectory(), "assets/field_model.stl");
+
+        try {
+            List<Translation3d[]> triangles = STLParser.parse(stlFile);
+            fieldTriangles.addAll(triangles);
+            System.out.println("[FieldCollision] Loaded " + fieldTriangles.size() + " triangles");
+        } catch (Exception e) {
+            System.out.println("[FieldCollision] Failed to load STL: " + e.getMessage());
+        }
+
+        int publishCount = Math.min(500, fieldTriangles.size());
+        Pose3d[] sample = new Pose3d[publishCount * 3];
+
+        for (int i = 0; i < publishCount; i++) {
+            int index = (int)((long)i * fieldTriangles.size() / publishCount);
+            Translation3d[] tri = fieldTriangles.get(index);
+            sample[i * 3 + 0] = new Pose3d(
+                new Translation3d(
+                    tri[0].getX() + FieldCollisionLoader.FIELD_OFFSET.getX(),
+                    tri[0].getY() + FieldCollisionLoader.FIELD_OFFSET.getY(),
+                    tri[0].getZ() + FieldCollisionLoader.FIELD_OFFSET.getZ()
+                ),
+                new Rotation3d()
+            );
+
+            sample[i * 3 + 1] = new Pose3d(
+                new Translation3d(
+                    tri[1].getX() + FieldCollisionLoader.FIELD_OFFSET.getX(),
+                    tri[1].getY() + FieldCollisionLoader.FIELD_OFFSET.getY(),
+                    tri[1].getZ() + FieldCollisionLoader.FIELD_OFFSET.getZ()
+                ),
+                new Rotation3d()
+            );
+
+            sample[i * 3 + 2] = new Pose3d(
+                new Translation3d(
+                    tri[2].getX() + FieldCollisionLoader.FIELD_OFFSET.getX(),
+                    tri[2].getY() + FieldCollisionLoader.FIELD_OFFSET.getY(),
+                    tri[2].getZ() + FieldCollisionLoader.FIELD_OFFSET.getZ()
+                ),
+                new Rotation3d()
+            );
+        }
+
+        fieldTrianglePublisher.set(sample);
+
+        fieldGrid = FieldCollisionLoader.loadFieldCollision();
+    }
+    
     public static void updateVertexPositionsAdvantageScope(Translation3d[] points, Translation3d[] intakePoints, Pose3d origin) {
         // makes these local positions into world positions and gives it to advantage scope   
         
@@ -180,6 +252,60 @@ public class Simulation {
 
             // keep the ball inside the field
             handleWallCollisions(ball);
+
+            Translation3d redGoalPos = new Translation3d(11.90, 4.05, 0);
+            double halfLength = 0.5, halfWidth = 0.5, goalHeight = 1.5;
+
+            Pose3d bp = ball.getPosition();
+            if (bp.getX() >= redGoalPos.getX() - halfLength && bp.getX() <= redGoalPos.getX() + halfLength &&
+                bp.getY() >= redGoalPos.getY() - halfWidth  && bp.getY() <= redGoalPos.getY() + halfWidth  &&
+                bp.getZ() >= redGoalPos.getZ()               && bp.getZ() <= redGoalPos.getZ() + goalHeight) {
+                ball.setPosition(new Pose3d(10.9, 4.05, 1, new Rotation3d()));
+                double angle = (Math.random() - 0.5) * 0.05; // from -0.25 to 0.25
+                ball.setVelocity(new Translation3d(-0.03,angle, -0.03));
+            }
+
+            if (balls.size() > 0 && ball == balls.get(0)) {
+                Translation3d pos = new Translation3d(ball.getPosition().getX(), ball.getPosition().getY(), ball.getPosition().getZ());
+                SmartDashboard.putNumber("Ball0 X", pos.getX());
+                SmartDashboard.putNumber("Ball0 Y", pos.getY());
+                SmartDashboard.putNumber("Ball0 Z", pos.getZ());
+                SmartDashboard.putNumber("Grid cells", fieldGrid != null ? fieldGrid.cells.size() : -1);
+                Translation3d testPos = new Translation3d(
+                    pos.getX() - FieldCollisionLoader.FIELD_OFFSET.getX(),
+                    pos.getY() - FieldCollisionLoader.FIELD_OFFSET.getY(),
+                    pos.getZ() - FieldCollisionLoader.FIELD_OFFSET.getZ()
+                );
+                Translation3d push = FieldCollisionLoader.getFieldPushVector(fieldGrid, testPos, ballRadius);
+                SmartDashboard.putBoolean("Field collision hit", push != null);
+            }
+
+            if (fieldGrid != null) {
+                Translation3d ballWorld = new Translation3d(
+                    ball.getPosition().getX() - FieldCollisionLoader.FIELD_OFFSET.getX(),
+                    ball.getPosition().getY() - FieldCollisionLoader.FIELD_OFFSET.getY(),
+                    ball.getPosition().getZ() - FieldCollisionLoader.FIELD_OFFSET.getZ()
+                );
+                Translation3d fieldPush = FieldCollisionLoader.getFieldPushVector(fieldGrid, ballWorld, ball.getRadius());
+                if (fieldPush != null) {
+                    Pose3d pos = ball.getPosition();
+                    ball.setPosition(new Pose3d(
+                        pos.getX() + fieldPush.getX(),
+                        pos.getY() + fieldPush.getY(),
+                        pos.getZ() + fieldPush.getZ(),
+                        pos.getRotation()
+                    ));
+                    double mag = fieldPush.getNorm();
+                    if (mag > 1e-9) {
+                        double impulse = Math.min(mag, 0.02);
+                        ball.addVelocity(
+                            (fieldPush.getX()/mag) * impulse,
+                            (fieldPush.getY()/mag) * impulse,
+                            (fieldPush.getZ()/mag) * impulse
+                        );
+                    }
+                }
+            }
         }
 
         // collisions between the balls

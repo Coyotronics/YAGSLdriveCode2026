@@ -9,6 +9,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
@@ -34,8 +35,11 @@ public class Robot extends TimedRobot
   private Timer disabledTimer;
 
   private final double targetHeight = 1.5;
-  private final Translation3d targetPos = new Translation3d(11.95, 4, targetHeight);
+  private final Translation3d targetPos = new Translation3d(11.90, 4.05, targetHeight);
   private StructPublisher<Pose3d> targetPublisher;
+
+  private StructPublisher<Pose3d> posePublisher;
+  private StructArrayPublisher<Pose3d> redGoalPublisher;
 
   public Robot()
   {
@@ -50,8 +54,6 @@ public class Robot extends TimedRobot
   /**
    * This function is run when the robot is first started up and should be used for any initialization code.
    */
-
-   private StructPublisher<Pose3d> posePublisher;
    
   @Override
   public void robotInit()
@@ -74,13 +76,14 @@ public class Robot extends TimedRobot
 
     if (isSimulation())
     {
-      Simulation.init();
+        Simulation.init();
 
-      targetPublisher = NetworkTableInstance.getDefault().getStructTopic("Sim/Target Pose", Pose3d.struct).publish();
+        targetPublisher = NetworkTableInstance.getDefault().getStructTopic("Sim/Target Pose", Pose3d.struct).publish();
+        targetPublisher.set(new Pose3d(targetPos.getX(), targetPos.getY(), targetPos.getZ(), new Rotation3d()));
 
-      targetPublisher.set(new Pose3d(targetPos.getX(), targetPos.getY(), targetPos.getZ(), new Rotation3d()));
+        redGoalPublisher = NetworkTableInstance.getDefault().getStructArrayTopic("/Field/Red Goal Points", Pose3d.struct).publish();
 
-      DriverStation.silenceJoystickConnectionWarning(true);
+        DriverStation.silenceJoystickConnectionWarning(true);
     }
   }
 
@@ -129,6 +132,34 @@ public class Robot extends TimedRobot
       intakePoints[5] = new Translation3d(-lengthHalf, -widthHalf, 0);
       intakePoints[6] = new Translation3d(-lengthHalf, -widthHalf -0.25, 2 * heightHalf);
       intakePoints[7] = new Translation3d(-lengthHalf, -widthHalf - 0.25, 0);
+
+      Translation3d redGoalPos = new Translation3d(11.90, 4.05, 0);
+
+      double goalWidth  = 1;
+      double goalLength = 1;
+      double goalHeight = 1.5;
+
+      Translation3d[] redGoalPoints = new Translation3d[8];
+      
+      double halfWidth  = goalWidth / 2.0;
+      double halfLength = goalLength / 2.0;
+      double halfHeight = goalHeight / 2.0;
+
+      redGoalPoints[0] = new Translation3d(redGoalPos.getX() + halfLength, redGoalPos.getY() + halfWidth, redGoalPos.getZ() + goalHeight);
+      redGoalPoints[1] = new Translation3d(redGoalPos.getX() + halfLength, redGoalPos.getY() - halfWidth, redGoalPos.getZ() + goalHeight);
+      redGoalPoints[2] = new Translation3d(redGoalPos.getX() - halfLength, redGoalPos.getY() + halfWidth, redGoalPos.getZ() + goalHeight);
+      redGoalPoints[3] = new Translation3d(redGoalPos.getX() - halfLength, redGoalPos.getY() - halfWidth, redGoalPos.getZ() + goalHeight);
+      redGoalPoints[4] = new Translation3d(redGoalPos.getX() + halfLength, redGoalPos.getY() + halfWidth, redGoalPos.getZ());
+      redGoalPoints[5] = new Translation3d(redGoalPos.getX() + halfLength, redGoalPos.getY() - halfWidth, redGoalPos.getZ());
+      redGoalPoints[6] = new Translation3d(redGoalPos.getX() - halfLength, redGoalPos.getY() + halfWidth, redGoalPos.getZ());
+      redGoalPoints[7] = new Translation3d(redGoalPos.getX() - halfLength, redGoalPos.getY() - halfWidth, redGoalPos.getZ());
+
+      Pose3d[] redGoalPoses = new Pose3d[redGoalPoints.length];
+      for (int i = 0; i < redGoalPoints.length; i++) {
+          redGoalPoses[i] = new Pose3d(redGoalPoints[i], new Rotation3d());
+      }
+
+      redGoalPublisher.set(redGoalPoses);
 
       Pose2d robotPose = m_robotContainer.getSwerveSubsystem().getSwerveDrive()
         .getSimulationDriveTrainPose()
