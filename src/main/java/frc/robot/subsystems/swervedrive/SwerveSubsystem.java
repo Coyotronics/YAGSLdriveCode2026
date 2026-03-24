@@ -53,6 +53,7 @@ import swervelib.parser.SwerveDriveConfiguration;
 import swervelib.parser.SwerveParser;
 import swervelib.telemetry.SwerveDriveTelemetry;
 import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
+import frc.robot.LimelightHelpers;
 
 public class SwerveSubsystem extends SubsystemBase
 {
@@ -128,7 +129,20 @@ public class SwerveSubsystem extends SubsystemBase
   @Override
   public void periodic()
   {
+    double omegaRPS = Math.abs(swerveDrive.getRobotVelocity().omegaRadiansPerSecond);
+    // var LLmeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight"); // TODO: Put correct Limelight Name
+    var LLmeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight");
     
+
+    // TODO: Not let the poses jump around too much, maybe requiring more than 1 tags, doing something to make sure vision and odometry don't clash too much, make MegaTag2 stuff more reliable
+    if(LLmeasurement != null && LLmeasurement.tagCount > 0 && LLmeasurement.avgTagDist < 5.0 && omegaRPS < 2.0)
+    {
+      swerveDrive.addVisionMeasurement(
+        LLmeasurement.pose,
+        LLmeasurement.timestampSeconds);
+
+      // resetOdometry(LLmeasurement.pose);  What they did in the video, maybe worse than the above
+    }
   }
 
   @Override
