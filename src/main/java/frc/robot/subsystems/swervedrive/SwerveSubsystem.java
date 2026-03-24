@@ -129,12 +129,18 @@ public class SwerveSubsystem extends SubsystemBase
   @Override
   public void periodic()
   {
-    double omegaRPS = Math.abs(swerveDrive.getRobotVelocity().omegaRadiansPerSecond);
-    // var LLmeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight"); // TODO: Put correct Limelight Name
-    var LLmeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight");
+    LimelightHelpers.SetRobotOrientation(
+    "limelight", // TODO: limelight name
+    getHeading().getDegrees(),
+    0, 0, 0, 0, 0);
     
+    double omegaRPS = Math.abs(swerveDrive.getRobotVelocity().omegaRadiansPerSecond);
+    // var LLmeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight"); 
+    var LLmeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight"); // TODO: Put correct Limelight Name and change to switch based off of alliance
 
-    // TODO: Not let the poses jump around too much, maybe requiring more than 1 tags, doing something to make sure vision and odometry don't clash too much, make MegaTag2 stuff more reliable
+
+
+    // TODO: Not let the poses jump around too much, add field2D for debugging, doing something to make sure vision and odometry don't clash too much, make MegaTag2 stuff more reliable by making it trust less when it's far
     if(LLmeasurement != null && LLmeasurement.tagCount > 0 && LLmeasurement.avgTagDist < 5.0 && omegaRPS < 2.0)
     {
       swerveDrive.addVisionMeasurement(
