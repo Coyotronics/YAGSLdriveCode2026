@@ -56,6 +56,7 @@ import swervelib.parser.SwerveParser;
 import swervelib.telemetry.SwerveDriveTelemetry;
 import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
 import frc.robot.LimelightHelpers;
+import edu.wpi.first.math.VecBuilder;
 
 public class SwerveSubsystem extends SubsystemBase
 {
@@ -139,22 +140,33 @@ public class SwerveSubsystem extends SubsystemBase
       0, 0, 0, 0, 0);
     
     double omegaRPS = Math.abs(swerveDrive.getRobotVelocity().omegaRadiansPerSecond);
-    var LLmeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight-shooter"); 
-    // var LLmeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight"); // TODO: Limelight Name
+    // var LLmeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight-shooter"); 
+    var LLmeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight"); // TODO: Limelight Name
 
-
-    
     // TODO: add field2D for debugging, doing something to make sure vision and odometry don't clash too much, make MegaTag2 stuff more reliable by making it trust less when it's far
-    if(LLmeasurement != null && LLmeasurement.tagCount > 0)
-    //  && LLmeasurement.avgTagDist < 5.0 && omegaRPS < 2.0
+    if(LLmeasurement != null && LLmeasurement.tagCount > 0 && LLmeasurement.avgTagDist < 5.0 && omegaRPS < 2.0)
+    //  
     { 
-      // swerveDrive.addVisionMeasurement(
-      //   LLmeasurement.pose,
-      //   LLmeasurement.timestampSeconds);
+
+      // Can tune 0.5 to change how much we trust vision
+      double xyStdDev = 0.5 * Math.pow(LLmeasurement.avgTagDist, 2); 
+      // double rotStdDev = 0.5 * Math.pow(LLmeasurement.avgTagDist, 2); // reccomended approach
+      double rotStdDev = 9999;  // theoretical better approach which trusts gyro more
+
+      if (LLmeasurement.tagCount > 1) 
+      {
+          xyStdDev = xyStdDev / 2.0; 
+      }
+
+      swerveDrive.addVisionMeasurement(
+        LLmeasurement.pose,
+        LLmeasurement.timestampSeconds,
+        VecBuilder.fill(xyStdDev, xyStdDev, rotStdDev));
 
       m_field.getObject("vision").setPose(LLmeasurement.pose);
       System.out.println("AprilTag Detected");
-      resetOdometry(LLmeasurement.pose); // What they did in the video, maybe worse than the above
+      System.out.println("LL: " + LLmeasurement + " tags: " + (LLmeasurement != null ? LLmeasurement.tagCount : "null"));
+      // resetOdometry(LLmeasurement.pose); // What they did in the video, maybe worse than the above
     }
   }
 
