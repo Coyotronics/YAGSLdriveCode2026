@@ -5,36 +5,23 @@
 package frc.robot;
 
 import java.io.File;
-import java.util.function.Supplier;
 
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rectangle2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.units.Measure;
-import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.Constants.OperatorConstants;
+import frc.robot.constants.Constants;
+import frc.robot.constants.Constants.OperatorConstants;
 import frc.robot.subsystems.HoodSubsystem;
 import frc.robot.subsystems.IntakeArm;
+import frc.robot.subsystems.IntakeRollers;
 import frc.robot.subsystems.RollerSubsystem;
 import frc.robot.subsystems.ShooterFlywheel;
-import frc.robot.subsystems.swervedrive.SwerveSubsystem;
-
-import static edu.wpi.first.units.Units.*;
-
-
+import frc.robot.subsystems.SwerveSubsystem;
 import swervelib.SwerveInputStream;
 
 /**
@@ -56,6 +43,8 @@ public class RobotContainer
   public final HoodSubsystem      HoodSubsystem = new HoodSubsystem();
   public final IntakeArm          IntakeArm = new IntakeArm();
 
+  public final IntakeRollers      IntakeRollers = new IntakeRollers();
+
 
   /**
    * Converts driver input into a field-relative ChassisSpeeds that is controlled by angular velocity.
@@ -67,6 +56,7 @@ public class RobotContainer
                                                             .deadband(Constants.OperatorConstants.DEADBAND)
                                                             .scaleTranslation(0.9)
                                                             .allianceRelativeControl(true);
+
 
     SwerveInputStream test = SwerveInputStream.of(drivebase.getSwerveDrive(),
                                                                 () -> 0,
@@ -137,6 +127,7 @@ public class RobotContainer
     Command driveFieldOrientedDirectAngle      = drivebase.driveFieldOriented(driveDirectAngle);
     Command driveFieldOrientedAnglularVelocity = drivebase.driveFieldOriented(driveAngularVelocity);
     Command driveRobotOrientedAngularVelocity  = drivebase.driveFieldOriented(driveRobotOriented);
+    
     Command driveSetpointGen = drivebase.driveWithSetpointGeneratorFieldRelative(
         driveDirectAngle);
     Command driveFieldOrientedDirectAngleKeyboard      = drivebase.driveFieldOriented(driveDirectAngleKeyboard);
@@ -178,6 +169,9 @@ public class RobotContainer
     HoodSubsystem.setDefaultCommand(Commands.run(() -> HoodSubsystem.setVelocity(0), HoodSubsystem));
 
     IntakeArm.setDefaultCommand(Commands.run(() -> IntakeArm.setVelocity(0), IntakeArm));
+
+    IntakeRollers.setDefaultCommand(Commands.run(() -> IntakeRollers.setDutyCycleSetpoint(0), IntakeRollers)); 
+    //Change this to 0.5 or something when comp comes around, also use set velocity instead of duty cycle for PID control. this rn is for testing
 
     
 
@@ -279,6 +273,11 @@ public class RobotContainer
                                               {Conveyor.setDutyCycle(
                                                   Math.max(-1, Math.min(1, driverXbox.getLeftTriggerAxis())));
                                                 System.out.println("Conveyor set to " + driverXbox.getLeftTriggerAxis());}, ShooterFlywheel));
+                                            
+      driverXbox.leftTrigger(0.05).whileTrue(Commands.run(() -> 
+                                              {IntakeRollers.setDutyCycle(
+                                                  Math.max(-1, Math.min(1, driverXbox.getLeftTriggerAxis())));
+                                                System.out.println("IntakeRollers set to " + driverXbox.getLeftTriggerAxis());}, ShooterFlywheel));
       driverXbox.povRight().whileTrue(Commands.run(() -> 
                                               {IntakeArm.setVelocity(10);
                                                 System.out.println("Intake Arm set to 10");}, IntakeArm));                                
