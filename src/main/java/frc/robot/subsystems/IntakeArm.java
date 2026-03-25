@@ -6,9 +6,11 @@ import com.revrobotics.spark.SparkMax;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.constants.Constants;
 
@@ -19,6 +21,7 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -144,6 +147,26 @@ public class IntakeArm extends SubsystemBase
   public void changeDegreeCommand(double degree) {
     arm.setAngle(arm.getAngle().plus(Degrees.of(degree)));
   }
+
+
+
+  //pop out command
+  public final Current CurrentThreshold = Amps.of(10); // Current threshold to detect when the arm has hit its hard limit 
+	Debouncer currentDebouncer = new Debouncer(0.001); // Current threshold is only detected if exceeded for 0.1
+	Voltage runVolts = Volts.of(-1); // Volts required to run the mechanism down. Could be negative if the mechanism
+
+
+public Command popOut() {
+		return Commands.startRun(masterMotorController::stopClosedLoopController, // Stop the closed loop controller
+				() -> masterMotorController.setVoltage(runVolts)) // Set the voltage of the motor
+				.until(() -> currentDebouncer.calculate(masterMotorController.getStatorCurrent().gte(CurrentThreshold)))
+
+				.finallyDo(() -> {
+					masterMotorController.setVoltage(Volts.of(0)); // Stop the motor
+					masterMotorController.setEncoderPosition(Degrees.of(0));
+					masterMotorController.startClosedLoopController();
+				});
+	}
 
 
 }

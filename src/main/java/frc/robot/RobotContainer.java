@@ -285,6 +285,8 @@ public class RobotContainer
       driverXbox.povLeft().whileTrue(Commands.run(() -> 
                                               {IntakeArm.setVelocity(-10);
                                                 System.out.println("Intake Arm set to -10");}, IntakeArm));
+                                              
+      driverXbox.x().onTrue(Commands.run(() -> IntakeArm.popOut(), IntakeArm));
 
     //      var topRightOfTrench = new Pose2d().getTranslation();
     // var bottomLeftOfTrench = new Pose2d().getTranslation();
