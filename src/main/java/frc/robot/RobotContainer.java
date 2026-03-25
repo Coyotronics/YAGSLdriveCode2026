@@ -227,12 +227,22 @@ public class RobotContainer
       driverXbox.leftBumper().whileTrue(Commands.runOnce(drivebase::lock, drivebase).repeatedly());
       driverXbox.rightBumper().onTrue(Commands.none());
       
-       driverXbox.y().toggleOnTrue(Commands.runOnce(() -> drivebase.setDefaultCommand(
+      driverXbox.y().toggleOnTrue(
+          new AlignSwerveCommand(
+            drivebase,
+            driveAngularVelocity,
+            Robot.isSimulation()
+        )
+      );
+
+      /*
+      driverXbox.y().toggleOnTrue(Commands.runOnce(() -> drivebase.setDefaultCommand(
                                     new AlignSwerveCommand(
                                       drivebase,
                                       driveAngularVelocity,
                                       Robot.isSimulation()))
-        ));
+      ));
+      */
     }
 
   }

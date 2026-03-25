@@ -72,11 +72,10 @@ public class Robot extends TimedRobot
     // immediately when disabled, but then also let it be pushed more 
     disabledTimer = new Timer();
 
-    posePublisher = NetworkTableInstance.getDefault().getStructTopic("Sim/My Pose", Pose3d.struct).publish();
-
-    if (isSimulation())
-    {
+    if (isSimulation()) {
         Simulation.init();
+
+        posePublisher = NetworkTableInstance.getDefault().getStructTopic("Sim/My Pose", Pose3d.struct).publish();
 
         targetPublisher = NetworkTableInstance.getDefault().getStructTopic("Sim/Target Pose", Pose3d.struct).publish();
         targetPublisher.set(new Pose3d(targetPos.getX(), targetPos.getY(), targetPos.getZ(), new Rotation3d()));

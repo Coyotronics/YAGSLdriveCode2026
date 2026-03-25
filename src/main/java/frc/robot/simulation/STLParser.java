@@ -15,7 +15,7 @@ public class STLParser {
     public static List<Translation3d[]> parse(File file) throws Exception {
         List<Translation3d[]> triangles = new ArrayList<>();
 
-        // it filters tiny details
+        // it filters tiny details (we only want stuff in between)
         final double MIN_SIDE = 0.02;
         final double MAX_SIDE = 3.0;
 
@@ -29,18 +29,18 @@ public class STLParser {
             for (int i = 0; i < numTriangles; i++) {
                 byte[] facetBuffer = new byte[50];
                 fis.read(facetBuffer);
-                ByteBuffer bb = ByteBuffer.wrap(facetBuffer).order(ByteOrder.LITTLE_ENDIAN);
-                bb.position(12);
+                ByteBuffer byteBuffer = ByteBuffer.wrap(facetBuffer).order(ByteOrder.LITTLE_ENDIAN);
+                byteBuffer.position(12);
 
                 Translation3d[] vertices = new Translation3d[3];
                 for (int v = 0; v < 3; v++) {
-                    float x = bb.getFloat();
-                    float y = bb.getFloat();
-                    float z = bb.getFloat();
+                    float x = byteBuffer.getFloat();
+                    float y = byteBuffer.getFloat();
+                    float z = byteBuffer.getFloat();
                     vertices[v] = new Translation3d(x, y, z);
                 }
 
-                boolean good = true;
+                boolean validTriangle = true;
 
                 for (int a = 0; a < 3; a++) {
                     int b = (a + 1) % 3;
@@ -48,15 +48,15 @@ public class STLParser {
                     double dy = vertices[b].getY() - vertices[a].getY();
                     double dz = vertices[b].getZ() - vertices[a].getZ();
 
-                    double sideLen = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                    double sideLen = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
                     if (sideLen < MIN_SIDE || sideLen > MAX_SIDE) {
-                        good = false;
+                        validTriangle = false;
                         break;
                     }
                 }
 
-                if (good) triangles.add(vertices);
+                if (validTriangle) triangles.add(vertices);
             }
         }
 

@@ -6,9 +6,14 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.Filesystem;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 // srry, not explanation this time, not enough time to do that
+
+// spatial hashing grid
 
 public class FieldCollisionLoader {
 
@@ -22,6 +27,7 @@ public class FieldCollisionLoader {
     public static final Translation3d FIELD_OFFSET = new Translation3d(deltaX, deltaY, deltaZ);
 
     private static final double CELL_SIZE = 0.5;
+    private static final List<AABB> candidates = new ArrayList<>(64);
 
     public static class SpatialGrid {
         public Map<Long, List<AABB>> cells = new HashMap<>();
@@ -66,7 +72,7 @@ public class FieldCollisionLoader {
             }
         }
 
-        System.out.println("[Grid] Cells: " + grid.cells.size());
+        System.out.println("Cell Count: " + grid.cells.size());
         return grid;
     }
 
@@ -100,7 +106,7 @@ public class FieldCollisionLoader {
         int cy = cell(center.getY());
         int cz = cell(center.getZ());
 
-        List<AABB> candidates = new ArrayList<>();
+        candidates.clear();
 
         for (int x = cx-1; x <= cx+1; x++)
         for (int y = cy-1; y <= cy+1; y++)
@@ -113,7 +119,7 @@ public class FieldCollisionLoader {
         double maxPenetration = 0;
 
         for (AABB box : candidates) {
-            Translation3d push = sphereAABBOverlap(center, radius, box.min, box.max);
+                    Translation3d push = sphereAABBOverlap(center, radius, box.min, box.max);
             if (push != null) {
                 double pen = push.getNorm();
                 if (pen > maxPenetration) {
@@ -146,7 +152,7 @@ public class FieldCollisionLoader {
     private static int cell(double v) { return (int)Math.floor(v / CELL_SIZE); }
 
     // https://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
-    
+
     private static long hash(int x, int y, int z) {
         long h = 1469598103934665603L;
         h ^= x; h *= 1099511628211L;

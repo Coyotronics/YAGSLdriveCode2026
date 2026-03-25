@@ -1,71 +1,87 @@
 package frc.robot.simulation;
 
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
 
-// commented it a lot if ur curious
-
 public class Ball {
-    private Pose3d pos;
+    public double x, y, z;
+    public double vx, vy, vz;
+
     private double radius;
-    private Translation3d velocity;
-
-    private static final double friction = 0.985;
-    private static final double gravity  = -9.8 * 0.02 * 0.02; // time squared
-
     private boolean ignoreRobot = false;
 
-    public Ball(Pose3d pos_, double radius_) {
-        pos = pos_;
-        radius = radius_;
-        velocity = new Translation3d(0, 0, 0);
+    private static final double friction = 0.985;
+    private static final double gravity  = -9.8 * 0.02 * 0.02;
+
+    public Ball(Pose3d pos, double radius) {
+        this.x = pos.getX();
+        this.y = pos.getY();
+        this.z = pos.getZ();
+
+        this.vx = 0;
+        this.vy = 0;
+        this.vz = 0;
+
+        this.radius = radius;
     }
 
     public double getRadius() { return radius; }
-    
-    public Pose3d getPosition() { return pos; }
-    public void setPosition(Pose3d pos_) { pos = pos_; }
 
-    public Translation3d getVelocity() { return velocity; }
-    public void setVelocity(Translation3d velocity_) { velocity = velocity_; }
+    public Pose3d getPosition() {
+        return new Pose3d(x, y, z, new Rotation3d());
+    }
 
-    public void setIgnoreRobot(boolean ignore) {
-        ignoreRobot = ignore;
+    public void setPosition(Pose3d p) {
+        x = p.getX();
+        y = p.getY();
+        z = p.getZ();
+    }
+
+    public void setPosition(double x, double y, double z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+
+    public Translation3d getVelocity() {
+        return new Translation3d(vx, vy, vz);
+    }
+
+    public void setVelocity(Translation3d v) {
+        vx = v.getX();
+        vy = v.getY();
+        vz = v.getZ();
+    }
+
+    public void setVelocity(double vx, double vy, double vz) {
+        this.vx = vx; this.vy = vy; this.vz = vz;
+    }
+
+    public void addVelocity(double dx, double dy, double dz) {
+        vx += dx;
+        vy += dy;
+        vz += dz;
     }
 
     public boolean getIgnoreRobot() {
         return ignoreRobot;
     }
 
-    public void addVelocity(double dx, double dy, double dz) {
-        velocity = new Translation3d(
-            velocity.getX() + dx,
-            velocity.getY() + dy,
-            velocity.getZ() + dz
-        );
+    public void setIgnoreRobot(boolean ignore) {
+        ignoreRobot = ignore;
     }
 
     public void tick() {
-        // called every 20 milliseconds
-        // does gravity and updates position
+        vz += gravity;
 
-        addVelocity(0, 0, gravity);
+        x += vx;
+        y += vy;
+        z += vz;
 
-        pos = new Pose3d(
-            pos.getX() + velocity.getX(),
-            pos.getY() + velocity.getY(),
-            pos.getZ() + velocity.getZ(),
-            pos.getRotation()
-        );
-
-        // apply friction when the ball is on the ground
-        // the 1e-4 is for any imprecision, basically safety
-        if (pos.getZ() <= radius + 1e-4) {
-            velocity = new Translation3d(
-                velocity.getX() * friction,
-                velocity.getY() * friction,
-                velocity.getZ()
-            );
+        if (z <= radius + 1e-4) { // just in case there is a SMALLLLLLL precision error
+            vx *= friction;
+            vy *= friction;
         }
     }
 }

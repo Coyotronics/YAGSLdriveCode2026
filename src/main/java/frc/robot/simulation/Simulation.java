@@ -2,6 +2,7 @@ package frc.robot.simulation;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -18,6 +19,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 
 // commented it a lot if ur curious
+// take that back, too lazy to comment more
 
 public class Simulation {
     public static double ballRadius = 0.075;
@@ -46,26 +48,47 @@ public class Simulation {
     private static List<Ball> balls = new ArrayList<>();
     private static List<Ball> storage = new ArrayList<>();
 
-    private static double shootAngle = 0.0; // above the xy plane
-    private static double shootSpeed = 0.0; // speed, not velocity since velocity is a vector
+    private static double shootAngle = 0.0;
+    private static double shootSpeed = 0.0;
 
     public static final Translation3d shooterPosition = new Translation3d(0.0, 0.0, 0.0);
 
     private static FieldCollisionLoader.SpatialGrid fieldGrid;
 
-    public static void init() {
-        // making balls in the center
+    private static final double BALL_CELL = 0.4;
+    
+    private static final int GW = 50;
+    private static final int GH = 24;
+    private static final int GD = 10;
 
-        balls.clear();
-        storage.clear();
+    private static final int MAX_CELL  = 16;
+    private static final int[][] bGrid = new int[GW * GH * GD][MAX_CELL];
+    private static final int[] bCnt = new int[GW * GH * GD];
 
-        double centerX = (length / 2.0) - 0.4325;
-        double centerY = (width / 2.0) + 0.075;
+    private static Pose3d[] ballPoseBuf = new Pose3d[0];
+    private static Pose3d[] vertexBuf = new Pose3d[0];
+    private static Pose3d[] intakeBuf = new Pose3d[0];
 
-        int cols = 12;
-        int rows = 30;
-        double spacing = 0.2;
+    private static int tick = 0;
+    private static final int PUB_EVERY= 3;
 
+    private static int gcX(double v) {
+        return Math.max(0, Math.min(GW - 1, (int) Math.floor(v / BALL_CELL)));
+    }
+    
+    private static int gcY(double v) {
+        return Math.max(0, Math.min(GH - 1, (int) Math.floor(v / BALL_CELL)));
+    }
+
+    private static int gcZ(double v) {
+        return Math.max(0, Math.min(GD - 1, (int) Math.floor(v / BALL_CELL)));
+    }
+
+    private static int gi(int x, int y, int z) {
+        return x + y * GW + z * GW * GH;
+    }
+
+    public static void makeBalls(double centerX, double centerY, int cols, int rows, double spacing) {
         double gridWidthX = (cols - 1) * spacing;
         double gridHeightY = (rows - 1) * spacing;
 
@@ -81,7 +104,26 @@ public class Simulation {
                 new Pose3d(x, y, z, new Rotation3d()), 
                 ballRadius
             ));
-        }
+        }   
+    }
+
+    public static void init() {
+        // making balls in the center
+
+        balls.clear();
+        storage.clear();
+
+        double centerX = (length / 2.0) - 0.4325;
+        double centerY = (width / 2.0) + 0.075;
+
+        int cols = 12;
+        int rows = 30;
+        double spacing = 0.2;
+
+        makeBalls(centerX, centerY, cols, rows, spacing);
+
+        // later add the balls on each teams sides
+        //makeBalls(0.5, centerY + 2, 6, 4, spacing);
 
         // so u can see stuff in advantage scope
 
@@ -95,10 +137,11 @@ public class Simulation {
         Pose3d[] verts = FieldCollisionLoader.getFieldVerticesAsPose3d(stlVertFile);
         int sampleCount = Math.min(500, verts.length);
         Pose3d[] sampleVert = new Pose3d[sampleCount];
-        for (int i = 0; i < sampleCount; i++) {
+        
+        for (int i = 0; i < sampleCount; i++)
             sampleVert[i] = verts[(int) ((long) i * verts.length / sampleCount)];
-        }
-        System.out.println("[FieldCollision] Publishing " + sampleVert.length + " sampled vertices (of " + verts.length + " total)");
+        
+        System.out.println("Publishing " + sampleVert.length + " Sampled Vertices of " + verts.length + " Total");
         fieldVertexPublisher.set(sampleVert);
         
         fieldTrianglePublisher = NetworkTableInstance.getDefault().getStructArrayTopic("/Field/Field Triangles", Pose3d.struct).publish();
@@ -108,9 +151,9 @@ public class Simulation {
         try {
             List<Translation3d[]> triangles = STLParser.parse(stlFile);
             fieldTriangles.addAll(triangles);
-            System.out.println("[FieldCollision] Loaded " + fieldTriangles.size() + " triangles");
+            System.out.println("Loaded Triangles: " + fieldTriangles.size());
         } catch (Exception e) {
-            System.out.println("[FieldCollision] Failed to load STL: " + e.getMessage());
+            System.out.println("ERROR: " + e.getMessage());
         }
 
         int publishCount = Math.min(500, fieldTriangles.size());
@@ -153,23 +196,16 @@ public class Simulation {
     }
     
     public static void updateVertexPositionsAdvantageScope(Translation3d[] points, Translation3d[] intakePoints, Pose3d origin) {
-        // makes these local positions into world positions and gives it to advantage scope   
+        if (vertexBuf.length != points.length) vertexBuf  = new Pose3d[points.length];
+        if (intakeBuf.length != intakePoints.length) intakeBuf  = new Pose3d[intakePoints.length];
         
-        Pose3d[] worldVertices = new Pose3d[points.length];
+        for (int i = 0; i < points.length; i++) vertexBuf[i] = transformToWorld(points[i],       origin);
+        for (int i = 0; i < intakePoints.length; i++) intakeBuf[i]  = transformToWorld(intakePoints[i], origin);
         
-        for (int i = 0; i < points.length; i++)
-            worldVertices[i] = transformToWorld(points[i], origin);
-        
-        vertexPublisher.set(worldVertices);
-
-        // same for this
-
-        Pose3d[] worldVerticesIntake = new Pose3d[intakePoints.length];
-
-        for (int i = 0; i < intakePoints.length; i++)
-            worldVerticesIntake[i] = transformToWorld(intakePoints[i], origin);
-        
-        intakePublisher.set(worldVerticesIntake);
+        if (tick % PUB_EVERY == 0) {
+            vertexPublisher.set(vertexBuf);
+            intakePublisher.set(intakeBuf);
+        }
     }
 
     public static void shootBall(Pose3d robotPose) {
@@ -183,13 +219,13 @@ public class Simulation {
         double yaw = robotPose.getRotation().getZ() + (Math.PI / 2.0);
         double elevationRadians = Math.toRadians(shootAngle);
 
-        // vxy is the speed along the ground (xy plane) and vy is the speed vertically (z axis)
-        double vxy = shootSpeed * Math.cos(elevationRadians);
+        // horizotnal velocity is the speed along the ground (xy plane) and vy is the speed vertically (z axis)
+        double horizotnalVelocity = shootSpeed * Math.cos(elevationRadians);
         double vz  = shootSpeed * Math.sin(elevationRadians);
 
         // splits speed along the xy plane into speeds correlating to their axis
-        double vx = vxy * Math.cos(yaw);
-        double vy = vxy * Math.sin(yaw);
+        double vx = horizotnalVelocity * Math.cos(yaw);
+        double vy = horizotnalVelocity * Math.sin(yaw);
 
         // put the ball at the shooter and let if fly :)
         ball.setPosition(spawnPose);
@@ -201,6 +237,8 @@ public class Simulation {
     }
 
     public static void updateBalls(Translation3d[] points, Translation3d[] intakePoints, Pose3d origin) {
+        tick++;
+        
         // iterator for future removal to be easy
         Iterator<Ball> iterator = balls.iterator();
 
@@ -229,14 +267,7 @@ public class Simulation {
                 if (push != null) {
                     // in the name, just pushing it
 
-                    Pose3d pos = ball.getPosition();
-
-                    ball.setPosition(new Pose3d(
-                        pos.getX() + push.getX(),
-                        pos.getY() + push.getY(),
-                        pos.getZ() + push.getZ(),
-                        pos.getRotation()
-                    ));
+                    ball.setPosition(ball.x + push.getX(), ball.y + push.getY(), ball.z + push.getZ());
 
                     // adding a velocity to push it away
                     double pushMagnitude = Math.sqrt(push.getX()*push.getX() + push.getY()*push.getY() + push.getZ()*push.getZ());
@@ -253,56 +284,24 @@ public class Simulation {
             // keep the ball inside the field
             handleWallCollisions(ball);
 
-            Translation3d redGoalPos = new Translation3d(11.90, 4.05, 0);
-            double halfLength = 0.5, halfWidth = 0.5, goalHeight = 1.5;
-
-            Pose3d bp = ball.getPosition();
-            if (bp.getX() >= redGoalPos.getX() - halfLength && bp.getX() <= redGoalPos.getX() + halfLength &&
-                bp.getY() >= redGoalPos.getY() - halfWidth  && bp.getY() <= redGoalPos.getY() + halfWidth  &&
-                bp.getZ() >= redGoalPos.getZ()               && bp.getZ() <= redGoalPos.getZ() + goalHeight) {
-                ball.setPosition(new Pose3d(10.9, 4.05, 1, new Rotation3d()));
-                double angle = (Math.random() - 0.5) * 0.05; // from -0.25 to 0.25
-                ball.setVelocity(new Translation3d(-0.03,angle, -0.03));
-            }
-
-            if (balls.size() > 0 && ball == balls.get(0)) {
-                Translation3d pos = new Translation3d(ball.getPosition().getX(), ball.getPosition().getY(), ball.getPosition().getZ());
-                SmartDashboard.putNumber("Ball0 X", pos.getX());
-                SmartDashboard.putNumber("Ball0 Y", pos.getY());
-                SmartDashboard.putNumber("Ball0 Z", pos.getZ());
-                SmartDashboard.putNumber("Grid cells", fieldGrid != null ? fieldGrid.cells.size() : -1);
-                Translation3d testPos = new Translation3d(
-                    pos.getX() - FieldCollisionLoader.FIELD_OFFSET.getX(),
-                    pos.getY() - FieldCollisionLoader.FIELD_OFFSET.getY(),
-                    pos.getZ() - FieldCollisionLoader.FIELD_OFFSET.getZ()
-                );
-                Translation3d push = FieldCollisionLoader.getFieldPushVector(fieldGrid, testPos, ballRadius);
-                SmartDashboard.putBoolean("Field collision hit", push != null);
+            if (ball.x >= 11.40 && ball.x <= 12.40 && ball.y >= 3.55 && ball.y <= 4.55 && ball.z >= 0 && ball.z <= 1.5) {
+                ball.setPosition(10.9, 4.05, 1);
+                ball.setVelocity(-0.03, (Math.random() - 0.5) * 0.05, -0.03);
             }
 
             if (fieldGrid != null) {
                 Translation3d ballWorld = new Translation3d(
-                    ball.getPosition().getX() - FieldCollisionLoader.FIELD_OFFSET.getX(),
-                    ball.getPosition().getY() - FieldCollisionLoader.FIELD_OFFSET.getY(),
-                    ball.getPosition().getZ() - FieldCollisionLoader.FIELD_OFFSET.getZ()
+                    ball.x - FieldCollisionLoader.FIELD_OFFSET.getX(),
+                    ball.y - FieldCollisionLoader.FIELD_OFFSET.getY(),
+                    ball.z - FieldCollisionLoader.FIELD_OFFSET.getZ()
                 );
                 Translation3d fieldPush = FieldCollisionLoader.getFieldPushVector(fieldGrid, ballWorld, ball.getRadius());
                 if (fieldPush != null) {
-                    Pose3d pos = ball.getPosition();
-                    ball.setPosition(new Pose3d(
-                        pos.getX() + fieldPush.getX(),
-                        pos.getY() + fieldPush.getY(),
-                        pos.getZ() + fieldPush.getZ(),
-                        pos.getRotation()
-                    ));
+                    ball.setPosition(ball.x + fieldPush.getX(), ball.y + fieldPush.getY(), ball.z + fieldPush.getZ());
                     double mag = fieldPush.getNorm();
                     if (mag > 1e-9) {
                         double impulse = Math.min(mag, 0.02);
-                        ball.addVelocity(
-                            (fieldPush.getX()/mag) * impulse,
-                            (fieldPush.getY()/mag) * impulse,
-                            (fieldPush.getZ()/mag) * impulse
-                        );
+                        ball.addVelocity(fieldPush.getX()/mag * impulse, fieldPush.getY()/mag * impulse, fieldPush.getZ()/mag * impulse);
                     }
                 }
             }
@@ -313,53 +312,67 @@ public class Simulation {
     }
 
     private static void handleBallCollisions() {
-        for (int i = 0; i < balls.size(); i++) {
-            for (int j = i + 1; j < balls.size(); j++) {
-                Ball a = balls.get(i);
-                Ball b = balls.get(j);
+        int ballCount = balls.size();
+        if (ballCount < 2) return;
 
-                Pose3d aPos = a.getPosition();
-                Pose3d bPos = b.getPosition();
+        Arrays.fill(bCnt, 0);
 
-                // difference in positions
-                double dx = bPos.getX() - aPos.getX();
-                double dy = bPos.getY() - aPos.getY();
-                double dz = bPos.getZ() - aPos.getZ();
-                double distance = Math.sqrt(dx*dx + dy*dy + dz*dz);
-                double minDistance = a.getRadius() + b.getRadius();
+        for (int i = 0; i < ballCount; i++) {
+            Pose3d pos = balls.get(i).getPosition();
+            int gridIndex  = gi(gcX(pos.getX()), gcY(pos.getY()), gcZ(pos.getZ()));
+            if (bCnt[gridIndex] < MAX_CELL) bGrid[gridIndex][bCnt[gridIndex]++] = i;
+        }
 
-                if (distance < minDistance && distance > 1e-9) {
-                    // normalize aka getting the directions
-                    double nx = dx / distance;
-                    double ny = dy / distance;
-                    double nz = dz / distance;
+        for (int i = 0; i < ballCount; i++) {
+            Ball a = balls.get(i);
 
-                    double overlap = (minDistance - distance) / 2.0;
+            // cells
+            int ax = gcX(a.x);
+            int ay = gcY(a.y);
+            int az = gcZ(a.z);
 
-                    // using overlap and pushing so they don't touch
-                    a.setPosition(new Pose3d(aPos.getX() - nx * overlap, aPos.getY() - ny * overlap, aPos.getZ() - nz * overlap, aPos.getRotation()));
-                    b.setPosition(new Pose3d(bPos.getX() + nx * overlap, bPos.getY() + ny * overlap, bPos.getZ() + nz * overlap, bPos.getRotation()));
+            // the same balls in the same grid, check it
+            for (int dx = -1; dx <= 1; dx++) {
+                int nx = ax + dx; if (nx < 0 || nx >= GW) continue;
+                
+                for (int dy = -1; dy <= 1; dy++) {
+                    int ny = ay + dy; if (ny < 0 || ny >= GH) continue;
+                    
+                    for (int dz = -1; dz <= 1; dz++) {
+                        int nz = az + dz; if (nz < 0 || nz >= GD) continue;
+                        int cellIdx = gi(nx, ny, nz);
+                        int count   = bCnt[cellIdx];
+                        for (int k = 0; k < count; k++) {
+                            int j = bGrid[cellIdx][k];
+                            if (j <= i) continue;
+                            
+                            Ball b = balls.get(j);
 
-                    Translation3d va = a.getVelocity();
-                    Translation3d vb = b.getVelocity();
-
-                    // get relative velocity between the balls
-                    double dvx = va.getX() - vb.getX();
-                    double dvy = va.getY() - vb.getY();
-                    double dvz = va.getZ() - vb.getZ();
-
-                    // project the relative velocity onto the collision normal
-                    // so if the dot is greater than 0, the balls are moving towards each other
-                    // if not (less than or equal to 0), they already are separating
-                    double dot = dvx * nx + dvy * ny + dvz * nz;
-
-                    // so if they are moving towards each other aka dot greater than 0, we do smth
-                    if (dot > 0) {
-                        double impulse = dot * 0.8;
-
-                        // that smth being providing an impulse
-                        a.setVelocity(new Translation3d(va.getX() - impulse * nx, va.getY() - impulse * ny, va.getZ() - impulse * nz));
-                        b.setVelocity(new Translation3d(vb.getX() + impulse * nx, vb.getY() + impulse * ny, vb.getZ() + impulse * nz));
+                            // already got dx so yea, dont let the extra d confuse u
+                            double ddx = b.x - a.x;
+                            double ddy = b.y - a.y;
+                            double ddz = b.z - a.z;
+                            
+                            double dist2 = ddx*ddx + ddy*ddy + ddz*ddz;
+                            double minD  = a.getRadius() + b.getRadius();
+                            if (dist2 >= minD * minD || dist2 < 1e-18) continue;
+                            double dist  = Math.sqrt(dist2);
+                            
+                            double overlap = (minD - dist) * 0.5;
+                            double nx2 = ddx/dist, ny2 = ddy/dist, nz2 = ddz/dist;
+                            
+                            a.setPosition(a.x - nx2*overlap, a.y - ny2*overlap, a.z - nz2*overlap);
+                            b.setPosition(b.x + nx2*overlap, b.y + ny2*overlap, b.z + nz2*overlap);
+                            
+                            double dot = (a.vx-b.vx)*nx2 + (a.vy-b.vy)*ny2 + (a.vz-b.vz)*nz2;
+                            
+                            if (dot > 0) {
+                                // friggin impiulse
+                                double impulse = dot * 0.8;
+                                a.setVelocity(a.vx - impulse*nx2, a.vy - impulse*ny2, a.vz - impulse*nz2);
+                                b.setVelocity(b.vx + impulse*nx2, b.vy + impulse*ny2, b.vz + impulse*nz2);
+                            }
+                        }
                     }
                 }
             }
@@ -367,17 +380,16 @@ public class Simulation {
     }
 
     private static boolean isBallInIntake(Ball ball, Translation3d[] intakePoints, Pose3d origin) {
-        Pose3d ballPos = ball.getPosition();
-        double yaw = origin.getRotation().getZ();
+        double yaw  = origin.getRotation().getZ();
 
         // save it for later
         double cosY = Math.cos(-yaw);
         double sinY = Math.sin(-yaw);
         
         // difference between the ball and the origin
-        double dx = ballPos.getX() - origin.getX();
-        double dy = ballPos.getY() - origin.getY();
-        double dz = ballPos.getZ() - origin.getZ();
+        double dx = ball.x - origin.getX();
+        double dy = ball.y - origin.getY();
+        double dz = ball.z - origin.getZ();
 
         // 2d rotation on the xy plane
         // puts it in robot local space
@@ -408,45 +420,30 @@ public class Simulation {
     }
 
     private static void handleWallCollisions(Ball ball) {
-        Pose3d pos = ball.getPosition();
+        double newX = MathUtil.clamp(ball.x, ballRadius, length - ballRadius);
+        double newY = MathUtil.clamp(ball.y, ballRadius, width  - ballRadius);
         
-        // clamp x and y to make it between the field boundaries
-        double newX = MathUtil.clamp(pos.getX(), ballRadius, length - ballRadius);
-        double newY = MathUtil.clamp(pos.getY(), ballRadius, width - ballRadius);
+        if (newX != ball.x) { ball.vx *= -0.5; ball.x = newX; }
+        if (newY != ball.y) { ball.vy *= -0.5; ball.y = newY; }
         
-        // reverses the velocity depending on which wall it hits
-        if (newX != pos.getX() || newY != pos.getY()) {
-            Translation3d v = ball.getVelocity();
-
-            double vx = (newX != pos.getX()) ? -v.getX() * 0.5 : v.getX();
-            double vy = (newY != pos.getY()) ? -v.getY() * 0.5 : v.getY();
+        if (ball.z < ballRadius) {
+            ball.z = ballRadius;
             
-            ball.setVelocity(new Translation3d(vx, vy, v.getZ()));
-            ball.setPosition(new Pose3d(newX, newY, pos.getZ(), pos.getRotation()));
-        }
-
-        // if ball below the ground, push it up
-        // also it got bouncing :)
-        if (pos.getZ() < ballRadius) {
-            ball.setPosition(new Pose3d(pos.getX(), pos.getY(), ballRadius, pos.getRotation()));
-            Translation3d v = ball.getVelocity();
-
-            // bounce dampens by 40 percent every time, should prob make it a variable
-            if (v.getZ() < 0) ball.setVelocity(new Translation3d(v.getX(), v.getY(), -v.getZ() * 0.4));
+            if (ball.vz < 0)
+                ball.vz *= -0.4;
         }
     }
 
     private static Translation3d getPushVector(Ball ball, Translation3d[] points, Pose3d origin) {
-        Pose3d sphereWorld = ball.getPosition();
-
-        double yaw = origin.getRotation().getZ();
+        double yaw  = origin.getRotation().getZ();
+        
         double cosY = Math.cos(-yaw);
         double sinY = Math.sin(-yaw);
 
         // difference
-        double dx = sphereWorld.getX() - origin.getX();
-        double dy = sphereWorld.getY() - origin.getY();
-        double dz = sphereWorld.getZ() - origin.getZ();
+        double dx = ball.x - origin.getX();
+        double dy = ball.y - origin.getY();
+        double dz = ball.z - origin.getZ();
 
         // put the ball in the robot local space
         // same trick done in the isBallInIntake method
@@ -566,26 +563,15 @@ public class Simulation {
     }
 
     public static void updateFakeLimelight(Translation3d targetPos, SwerveSubsystem drivebase) {
+        // LimelightHelpers.PoseEstimate mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight");
+
         Pose2d robotPose2d = drivebase.getPose();
-        
+ 
         double dx = targetPos.getX() - robotPose2d.getX();
         double dy = targetPos.getY() - robotPose2d.getY();
-        
+ 
         // ignore height difference
         double horizontalDistance = Math.sqrt(dx * dx + dy * dy);
-
-        double targetAngle = Math.atan2(dy, dx);
-        targetAngle += (Math.PI / 2.0); // error fix
-
-        double robotHeading = robotPose2d.getRotation().getRadians();
-        
-        // get the tx from the difference between angle and heading
-        double tx = Math.toDegrees(targetAngle - robotHeading);
-        tx = MathUtil.inputModulus(tx, -180, 180);
-        
-        FakeLimelight.setTX(tx);
-        FakeLimelight.setHasTarget(true);
-
 
         double gravityTick = 9.8 * 0.02 * 0.02; // time is squared
 
@@ -628,9 +614,13 @@ public class Simulation {
     }
 
     public static void updateBallPositionsAdvantageScope() {
-        Pose3d[] positions = balls.stream().map(Ball::getPosition).toArray(Pose3d[]::new);
+        if (tick % PUB_EVERY != 0) return;
+
+        int n = balls.size();
+        if (ballPoseBuf.length != n) ballPoseBuf = new Pose3d[n];
+        for (int i = 0; i < n; i++) ballPoseBuf[i] = balls.get(i).getPosition();
         
-        ballPublisher.set(positions);
+        ballPublisher.set(ballPoseBuf);
         SmartDashboard.putNumber("Simulation/Balls In Storage", storage.size());
     }
 
