@@ -10,6 +10,7 @@ import java.util.function.Supplier;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rectangle2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
@@ -17,6 +18,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -148,7 +150,7 @@ public class RobotContainer
     } else
     {
       System.out.println("Setting default command");
-      drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
+      drivebase.setDefaultCommand(testCommand);
       //drivebase.setDefaultCommand(driveFieldOrientedDirectAngleKeyboard);
       //drivebase.setDefaultCommand(driveFieldOrientedDirectAngle);
       System.out.println("I lowk did this shit");
@@ -168,7 +170,7 @@ public class RobotContainer
     
     Conveyor.setDefaultCommand(Commands.run(() -> Conveyor.setDutyCycle(0), Conveyor));
 
-    ShooterFlywheel.setDefaultCommand(Commands.run(() -> ShooterFlywheel.setBothDutyCycleSetpoint(0), ShooterFlywheel));
+    ShooterFlywheel.setDefaultCommand(Commands.run(() -> ShooterFlywheel.setBothDutyCycleSetpoint(0.5), ShooterFlywheel));
 
     
    
@@ -284,6 +286,56 @@ public class RobotContainer
       driverXbox.povLeft().whileTrue(Commands.run(() -> 
                                               {IntakeArm.setVelocity(-10);
                                                 System.out.println("Intake Arm set to -10");}, IntakeArm));
+
+    //      var topRightOfTrench = new Pose2d().getTranslation();
+    // var bottomLeftOfTrench = new Pose2d().getTranslation();
+    // var trenchRight = new Rectangle2d(topRightOfTrench,bottomLeftOfTrench);
+
+
+    //   var topBlueTrenchTopLeft = new Translation2d(5.238, 8.016);
+    //   var topBlueTrenchBottomRight = new Translation2d(4.048, 6.747);
+    //   var topBlueTrench = new Rectangle2d(topBlueTrenchTopLeft, topBlueTrenchBottomRight);
+
+    //   var bottomBlueTrenchTopLeft = new Translation2d(5.146, 1.409);
+    //   var bottomBlueTrenchBottomRight = new Translation2d(4.034, 0.045);
+    //   var bottomBlueTrench = new Rectangle2d(bottomBlueTrenchTopLeft, bottomBlueTrenchBottomRight);
+
+    //   var topRedTrenchTopLeft = new Translation2d(12.558, 8.013);
+    //   var topRedTrenchBottomRight = new Translation2d(11.394, 6.816);
+    //   var topRedTrench = new Rectangle2d(topRedTrenchTopLeft, topRedTrenchBottomRight);
+
+    //   var bottomRedTrenchTopLeft = new Translation2d(12.539, 1.254);
+    //   var bottomRedTrenchBottomRight = new Translation2d(11.394, 0.045);
+    //   var bottomRedTrench = new Rectangle2d(bottomRedTrenchTopLeft, bottomRedTrenchBottomRight);
+
+    //   Predicate<Pose2d> inTheTrenches = pose -> 
+    //                                   topBlueTrench.contains(pose.getTranslation()) ||
+    //                                   bottomBlueTrench.contains(pose.getTranslation()) ||
+    //                                   topRedTrench.contains(pose.getTranslation()) ||
+    //                                   bottomRedTrench.contains(pose.getTranslation())
+    //                                   ;
+                                  
+
+    //   double headingDegrees = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue ? 0.0 : 180.0;
+    
+    //   SwerveInputStream stream = driveAngularVelocity.copy().withControllerHeadingAxis(
+    //                                                           ()->  Math.cos(Degrees.of(headingDegrees).in(Radians)), 
+    //                                                           ()->Math.sin(Degrees.of(headingDegrees).in(Radians)))
+    //                                                         .headingWhile(true);
+      
+    //   Command driveAimedAtTrenchFieldOriented = drivebase.driveFieldOriented(stream);
+
+
+    //   Trigger trench = new Trigger( 
+    //                               () -> inTheTrenches.test(drivebase.getPose())
+    //                               )
+    //                                 .whileTrue(
+    //                                             Commands.run(
+    //                                                           ()-> {drivebase.setDefaultCommand(driveAimedAtTrenchFieldOriented);} 
+    //                                                         )
+
+    //                                 .finallyDo(  () -> drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity) )
+    //                               );
 
     
 
