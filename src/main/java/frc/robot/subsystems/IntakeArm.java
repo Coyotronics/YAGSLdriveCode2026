@@ -49,7 +49,7 @@ import static edu.wpi.first.units.Units.*;
 public class IntakeArm extends SubsystemBase
 {
 
-  private SparkMax             m_masterMotor   = new SparkMax(12, MotorType.kBrushless);
+  private SparkMax             m_masterMotor   = new SparkMax(1, MotorType.kBrushless); // TODO: fix this ID, something is wrong
 
   private SparkAbsoluteEncoder m_masterAbsoluteEncoder = m_masterMotor.getAbsoluteEncoder();
  

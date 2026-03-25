@@ -44,16 +44,18 @@ public class Robot extends TimedRobot
    * This function is run when the robot is first started up and should be used for any initialization code.
    */
 
-   private StructPublisher<Pose3d> posePub;
-    private final Field2d m_field = new Field2d();
+  private StructPublisher<Pose3d> posePub;
+  // public final Field2d m_field = new Field2d();
+
+
   @Override
   public void robotInit()
   {
 
 
+
     // Do this in either robot or subsystem init
     // SmartDashboard.putData("Field", m_field);
-
 
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
     // autonomous chooser on the dashboard.
@@ -66,6 +68,7 @@ public class Robot extends TimedRobot
     posePub = NetworkTableInstance.getDefault()
             .getStructTopic("Sim/MyPose", Pose3d.struct)
             .publish();
+
 
     if (isSimulation())
     {
@@ -92,8 +95,8 @@ public class Robot extends TimedRobot
     CommandScheduler.getInstance().run();
 
     //System.out.println("Everything zerox2");
-
-    //m_field.setRobotPose(m_robotContainer.drivebase.getPose());
+    
+    // m_field.setRobotPose(m_robotContainer.drivebase.getPose());
   }
 
   /**

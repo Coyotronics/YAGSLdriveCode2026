@@ -29,6 +29,8 @@ import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -63,6 +65,7 @@ public class SwerveSubsystem extends SubsystemBase
    */
   private final SwerveDrive swerveDrive;
 
+  public final Field2d m_field = new Field2d();
 
   /**
    * Initialize {@link SwerveDrive} with the directory provided.
@@ -72,6 +75,7 @@ public class SwerveSubsystem extends SubsystemBase
   public SwerveSubsystem(File directory)
   {
 
+    SmartDashboard.putData("Field", m_field);
 
     boolean blueAlliance = false;
     Pose2d startingPose = blueAlliance ? new Pose2d(new Translation2d(Meter.of(2),
@@ -130,24 +134,27 @@ public class SwerveSubsystem extends SubsystemBase
   public void periodic()
   {
     LimelightHelpers.SetRobotOrientation(
-    "limelight", // TODO: limelight name
-    getHeading().getDegrees(),
-    0, 0, 0, 0, 0);
+      "limelight-shooter", // TODO: limelight name
+      getHeading().getDegrees(),
+      0, 0, 0, 0, 0);
     
     double omegaRPS = Math.abs(swerveDrive.getRobotVelocity().omegaRadiansPerSecond);
-    // var LLmeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight"); 
-    var LLmeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight"); // TODO: Put correct Limelight Name and change to switch based off of alliance
+    var LLmeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight-shooter"); 
+    // var LLmeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight"); // TODO: Limelight Name
 
 
+    
+    // TODO: add field2D for debugging, doing something to make sure vision and odometry don't clash too much, make MegaTag2 stuff more reliable by making it trust less when it's far
+    if(LLmeasurement != null && LLmeasurement.tagCount > 0)
+    //  && LLmeasurement.avgTagDist < 5.0 && omegaRPS < 2.0
+    { 
+      // swerveDrive.addVisionMeasurement(
+      //   LLmeasurement.pose,
+      //   LLmeasurement.timestampSeconds);
 
-    // TODO: Not let the poses jump around too much, add field2D for debugging, doing something to make sure vision and odometry don't clash too much, make MegaTag2 stuff more reliable by making it trust less when it's far
-    if(LLmeasurement != null && LLmeasurement.tagCount > 0 && LLmeasurement.avgTagDist < 5.0 && omegaRPS < 2.0)
-    {
-      swerveDrive.addVisionMeasurement(
-        LLmeasurement.pose,
-        LLmeasurement.timestampSeconds);
-
-      // resetOdometry(LLmeasurement.pose);  What they did in the video, maybe worse than the above
+      m_field.getObject("vision").setPose(LLmeasurement.pose);
+      System.out.println("AprilTag Detected");
+      resetOdometry(LLmeasurement.pose); // What they did in the video, maybe worse than the above
     }
   }
 
