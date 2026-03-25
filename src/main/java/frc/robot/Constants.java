@@ -66,7 +66,7 @@ static {
   CANids[12] = true; // drivebase backleft steer
 
   CANids[22] = true; // drivebase backright drive
-  CANids[37] = true; // drivebase backright steer
+  CANids[37] = true; // drivebase backright steer //CHANGE TAPE
 
   CANids[5] = true;  // drivebase frontleft drive
   CANids[10] = true; // drivebase frontleft steer
@@ -83,6 +83,8 @@ static {
   CANids[39] = true; // shooter bottom flywheel left
 
   CANids[47] = true; // hood 
+
+  CANids[1] = true;  // intake arm CHANGE TAPE
 }
 
 }
