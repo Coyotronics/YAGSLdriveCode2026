@@ -1,10 +1,5 @@
 package frc.robot.subsystems;
 
-import static edu.wpi.first.units.Units.Amps;
-import static edu.wpi.first.units.Units.Degrees;
-import static edu.wpi.first.units.Units.Rotations;
-import static edu.wpi.first.units.Units.Volts;
-
 import com.revrobotics.spark.SparkAbsoluteEncoder;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
@@ -54,7 +49,7 @@ import static edu.wpi.first.units.Units.*;
 public class IntakeArm extends SubsystemBase
 {
 
-  private SparkMax             m_masterMotor   = new SparkMax(1, MotorType.kBrushless);
+  private SparkMax             m_masterMotor   = new SparkMax(1, MotorType.kBrushless); // TODO: fix this ID, something is wrong
 
   private SparkAbsoluteEncoder m_masterAbsoluteEncoder = m_masterMotor.getAbsoluteEncoder();
  
@@ -65,9 +60,8 @@ public class IntakeArm extends SubsystemBase
       .withClosedLoopController(4.5, 0, 0.5)
       .withFeedforward(new ArmFeedforward(0.15, 0, 100, 0))
 
-      .withSimClosedLoopController(2, 0, 0.5)
-      .withSimFeedforward(new ArmFeedforward(0.15, 0, 100, 0))
-
+      .withSimClosedLoopController(3.5, 0, 0.3)
+      .withSimFeedforward(new ArmFeedforward(0.15, 0.5, 0, 0))
       .withTelemetry("IntakeArmMotor", TelemetryVerbosity.HIGH)
       .withGearing(new MechanismGearing(GearBox.fromReductionStages(25, 1)))
       .withMotorInverted(true)

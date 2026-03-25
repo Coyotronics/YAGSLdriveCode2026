@@ -1,0 +1,107 @@
+package frc.robot.subsystems;
+
+import static edu.wpi.first.units.Units.*;
+
+import com.revrobotics.spark.SparkMax;
+
+import edu.wpi.first.math.controller.ArmFeedforward;
+import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.system.plant.DCMotor;
+
+import edu.wpi.first.units.measure.Angle;
+
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
+import yams.gearing.GearBox;
+import yams.gearing.MechanismGearing;
+
+import yams.mechanisms.config.MechanismPositionConfig;
+import yams.mechanisms.config.PivotConfig;
+import yams.mechanisms.positional.Pivot;
+
+import yams.motorcontrollers.SmartMotorController;
+import yams.motorcontrollers.SmartMotorControllerConfig;
+import yams.motorcontrollers.SmartMotorControllerConfig.ControlMode;
+import yams.motorcontrollers.SmartMotorControllerConfig.MotorMode;
+import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
+
+import yams.motorcontrollers.rev.SparkMaxWrapper;
+
+public class HoodSubsystem extends SubsystemBase {
+
+  private final SparkMax motor = new SparkMax(HoodConstants.kMotorID);
+
+  private final SmartMotorControllerConfig m_motorConfig =
+      new SmartMotorControllerConfig(this).withClosedLoopController(HoodConstants.kP, HoodConstants.kI, HoodConstants.kD, DegreesPerSecond.of(180), DegreesPerSecondPerSecond.of(90))
+          .withSoftLimit(
+              HoodConstants.kMinAngle,
+              HoodConstants.kMaxAngle)
+          .withGearing(
+              new MechanismGearing(
+                  GearBox.fromReductionStages(
+                      HoodConstants.kGearStage1,
+                      HoodConstants.kGearStage2)))
+          .withIdleMode(MotorMode.BRAKE)
+          .withTelemetry(
+              "HoodMotor",
+              TelemetryVerbosity.HIGH)
+          .withStatorCurrentLimit(Amps.of(40))
+          .withMotorInverted(false)
+          .withClosedLoopRampRate(Seconds.of(0.25))
+          .withOpenLoopRampRate(Seconds.of(0.25))
+          .withFeedforward(new ArmFeedforward(0,0,0,0))
+          .withControlMode(ControlMode.CLOSED_LOOP);
+  private final SmartMotorController m_motor =
+      new SparkMaxWrapper(
+          motor,
+          DCMotor.getNEO(1),
+          m_motorConfig);
+  private final MechanismPositionConfig m_mechanismPosition =
+      new MechanismPositionConfig()
+          .withMaxRobotHeight(Meters.of(1.5))
+          .withMaxRobotLength(Meters.of(0.75))
+          .withRelativePosition(
+              new Translation3d(
+                  Meters.of(-0.25),
+                  Meters.of(0),
+                  Meters.of(0.5)));
+  private final PivotConfig m_pivotConfig =
+      new PivotConfig(m_motor)
+          .withHardLimit(
+              Degrees.of(-100),
+              Degrees.of(200))
+          .withStartingPosition(Degrees.of(0))
+          .withTelemetry(
+              "Hood",
+              TelemetryVerbosity.HIGH)
+          .withMechanismPositionConfig(
+              m_mechanismPosition);
+  private final Pivot m_hood = new Pivot(m_pivotConfig);
+  public HoodSubsystem() {}
+  @Override
+  public void periodic() {
+    m_hood.updateTelemetry();
+  }
+  @Override
+  public void simulationPeriodic() {
+    m_hood.simIterate();
+  }
+  public Command setDutyCycle(double dutyCycle) {
+    return m_hood.set(dutyCycle)
+        .withName("HoodDuty");
+  }
+  public Command setAngle(Angle angle) {
+    return m_hood.setAngle(angle)
+        .withName("HoodSetAngle");
+  }
+  public void setAngleSetpoint(Angle angle) {
+    m_hood.setMechanismPositionSetpoint(angle);
+  }
+  public Command runSysId() {
+    return m_hood.sysId(
+        Volts.of(3),
+        Volts.of(3).per(Second),
+        Seconds.of(30));
+  }
+}
