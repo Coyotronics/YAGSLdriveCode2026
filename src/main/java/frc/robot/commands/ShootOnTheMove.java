@@ -87,8 +87,8 @@ public class ShootOnTheMove extends Command {
     maxDistance = 5.60;
     phaseDelay = 0.03; // should be .13?
 
-    launchHoodAngleMap.put(1.34, Rotation2d.fromDegrees(19.0));
-    launchHoodAngleMap.put(1.78, Rotation2d.fromDegrees(19.0));
+    launchHoodAngleMap.put(1.34, Rotation2d.fromDegrees(19.0)); // distance to target, hood angle
+    launchHoodAngleMap.put(1.78, Rotation2d.fromDegrees(19.0)); 
     launchHoodAngleMap.put(2.17, Rotation2d.fromDegrees(24.0));
     launchHoodAngleMap.put(2.81, Rotation2d.fromDegrees(27.0));
     launchHoodAngleMap.put(3.82, Rotation2d.fromDegrees(29.0));
@@ -98,7 +98,7 @@ public class ShootOnTheMove extends Command {
     launchHoodAngleMap.put(5.57, Rotation2d.fromDegrees(32.0));
     launchHoodAngleMap.put(5.60, Rotation2d.fromDegrees(35.0));
 
-    launchFlywheelSpeedMap.put(2.12923 - .22, 2725.0);
+    launchFlywheelSpeedMap.put(2.12923 - .22, 2725.0);  // distance, exit velocity
     launchFlywheelSpeedMap.put(2.504222 - .22, 2800.0);
     launchFlywheelSpeedMap.put(2.889 - .22, 2950.0);
     launchFlywheelSpeedMap.put(3.254686 - .22, 3085.0);

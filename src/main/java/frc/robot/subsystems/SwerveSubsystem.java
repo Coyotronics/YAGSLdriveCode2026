@@ -136,15 +136,14 @@ public class SwerveSubsystem extends SubsystemBase
   public void periodic()
   {
     LimelightHelpers.SetRobotOrientation(
-      "limelight-shooter", // TODO: limelight name
+      "limelight-", // TODO: limelight name
       getHeading().getDegrees(),
       0, 0, 0, 0, 0);
     
     double omegaRPS = Math.abs(swerveDrive.getRobotVelocity().omegaRadiansPerSecond);
     // var LLmeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight-shooter"); 
-    var LLmeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight"); // TODO: Limelight Name
+    var LLmeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight-"); // TODO: Limelight Name
 
-    // TODO: add field2D for debugging, doing something to make sure vision and odometry don't clash too much, make MegaTag2 stuff more reliable by making it trust less when it's far
     if(LLmeasurement != null && LLmeasurement.tagCount > 0 && LLmeasurement.avgTagDist < 5.0 && omegaRPS < 2.0)
     //  
     { 

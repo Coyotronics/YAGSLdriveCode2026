@@ -34,8 +34,8 @@ public class HoodSubsystem extends SubsystemBase {//Modeled as a pivot, since it
               //DegreesPerSecond.of(180),  
               //DegreesPerSecondPerSecond.of(90))  //Don't add it unless it's not increasing fast enough
           .withSimClosedLoopController(4,0,0)
-              //DegreesPerSecond.of(180),
-              //DegreesPerSecondPerSecond.of(90))
+              // DegreesPerSecond.of(180),
+              // DegreesPerSecondPerSecond.of(90))
           .withGearing(new MechanismGearing(GearBox.fromReductionStages(265, 4)))
           .withIdleMode(MotorMode.BRAKE)
           .withTelemetry("HoodMotor", TelemetryVerbosity.HIGH)
@@ -62,8 +62,8 @@ public class HoodSubsystem extends SubsystemBase {//Modeled as a pivot, since it
 
   private final PivotConfig m_config =
       new PivotConfig(motor)
-          .withHardLimit(Degrees.of(0), Degrees.of(30))
-          .withSoftLimits(Degrees.of(-10), Degrees.of(27))
+          .withHardLimit(Degrees.of(0), Degrees.of(50))
+          .withSoftLimits(Degrees.of(-10), Degrees.of(50))
           .withTelemetry("Hood", TelemetryVerbosity.HIGH)
           .withStartingPosition(Degrees.of(0))
           //.withMOI(Inches.of(7), Pounds.of(2))
