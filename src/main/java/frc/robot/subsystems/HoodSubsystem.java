@@ -30,10 +30,11 @@ public class HoodSubsystem extends SubsystemBase {//Modeled as a pivot, since it
   private final SparkMax hoodMotor = new SparkMax(47, MotorType.kBrushless);
   private final SmartMotorControllerConfig motorConfig =
       new SmartMotorControllerConfig(this)
-          .withClosedLoopController(4,0,0)
+          //.withClosedLoopController(500,0,3)
+          .withClosedLoopController(100, 0, 0)
               //DegreesPerSecond.of(180),  
               //DegreesPerSecondPerSecond.of(90))  //Don't add it unless it's not increasing fast enough
-          .withSimClosedLoopController(4,0,0)
+          .withSimClosedLoopController(100,0,0)
               //DegreesPerSecond.of(180),
               //DegreesPerSecondPerSecond.of(90))
           .withGearing(new MechanismGearing(GearBox.fromReductionStages(265, 4)))
@@ -46,7 +47,7 @@ public class HoodSubsystem extends SubsystemBase {//Modeled as a pivot, since it
           //.withClosedLoopRampRate(Seconds.of(0.25)) //Don't add it unless it's too fast(limit the rate & help slow it down)->check yams docs
           //.withOpenLoopRampRate(Seconds.of(0.25))
           .withFeedforward(new SimpleMotorFeedforward(0.2, 0, 0))
-          .withSimFeedforward(new SimpleMotorFeedforward(0,0,0))
+          .withSimFeedforward(new SimpleMotorFeedforward(0.1,0,0))
           .withControlMode(ControlMode.CLOSED_LOOP);
 
   private final SmartMotorController motor =
@@ -62,8 +63,8 @@ public class HoodSubsystem extends SubsystemBase {//Modeled as a pivot, since it
 
   private final PivotConfig m_config =
       new PivotConfig(motor)
-          .withHardLimit(Degrees.of(0), Degrees.of(30))
-          .withSoftLimits(Degrees.of(-10), Degrees.of(27))
+          .withHardLimit(Degrees.of(0), Degrees.of(100))
+          .withSoftLimits(Degrees.of(-10), Degrees.of(100))
           .withTelemetry("Hood", TelemetryVerbosity.HIGH)
           .withStartingPosition(Degrees.of(0))
           //.withMOI(Inches.of(7), Pounds.of(2))

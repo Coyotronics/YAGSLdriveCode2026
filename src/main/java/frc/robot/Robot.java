@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Degrees;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -14,6 +16,7 @@ import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -34,13 +37,6 @@ public class Robot extends TimedRobot
 
   private Timer disabledTimer;
 
-  private final double targetHeight = 1.5;
-  private final Translation3d targetPos = new Translation3d(11.90, 4.05, targetHeight);
-  private StructPublisher<Pose3d> targetPublisher;
-
-  private StructPublisher<Pose3d> posePublisher;
-  private StructArrayPublisher<Pose3d> redGoalPublisher;
-
   public Robot()
   {
     instance = this;
@@ -54,15 +50,25 @@ public class Robot extends TimedRobot
   /**
    * This function is run when the robot is first started up and should be used for any initialization code.
    */
-   
+
+  // public final Field2d m_field = new Field2d();
+
+  private final double targetHeight = 1.5;
+  private final Translation3d targetPos = new Translation3d(11.9, 4.05, targetHeight);
+  private StructPublisher<Pose3d> targetPublisher;
+
+  private StructPublisher<Pose3d> posePublisher;
+  private StructArrayPublisher<Pose3d> redGoalPublisher;
+
+
   @Override
   public void robotInit()
   {
 
 
+
     // Do this in either robot or subsystem init
     // SmartDashboard.putData("Field", m_field);
-
 
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
     // autonomous chooser on the dashboard.
@@ -72,10 +78,10 @@ public class Robot extends TimedRobot
     // immediately when disabled, but then also let it be pushed more 
     disabledTimer = new Timer();
 
+    posePublisher = NetworkTableInstance.getDefault().getStructTopic("Sim/My Pose", Pose3d.struct).publish();
+
     if (isSimulation()) {
         Simulation.init();
-
-        posePublisher = NetworkTableInstance.getDefault().getStructTopic("Sim/My Pose", Pose3d.struct).publish();
 
         targetPublisher = NetworkTableInstance.getDefault().getStructTopic("Sim/Target Pose", Pose3d.struct).publish();
         targetPublisher.set(new Pose3d(targetPos.getX(), targetPos.getY(), targetPos.getZ(), new Rotation3d()));
@@ -101,7 +107,7 @@ public class Robot extends TimedRobot
     // and running subsystem periodic() methods.  This must be called from the robot's periodic
     // block in order for anything in the Command-based framework to work.
     SmartDashboard.putNumber("Robot Heading", m_robotContainer.getSwerveSubsystem().getHeading().getDegrees());
-    
+  
     if (isSimulation()) {
       Simulation.updateFakeLimelight(targetPos, m_robotContainer.getSwerveSubsystem());
 
@@ -186,6 +192,10 @@ public class Robot extends TimedRobot
     }
 
     CommandScheduler.getInstance().run();
+
+    //System.out.println("Everything zerox2");
+    
+    // m_field.setRobotPose(m_robotContainer.drivebase.getPose());
   }
 
   /**

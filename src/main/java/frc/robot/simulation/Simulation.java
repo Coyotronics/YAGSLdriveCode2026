@@ -29,7 +29,7 @@ public class Simulation {
 
     public static int maxStorage = 40; // idk
 
-    public static double shootHeightError = 1.5;
+    public static double shootHeightError = 1;
     public static double minShootAngle = 0.0;
     public static double maxShootAngle = 80.0; // in degrees
 
@@ -88,7 +88,19 @@ public class Simulation {
         return x + y * GW + z * GW * GH;
     }
 
-    public static void makeBalls(double centerX, double centerY, int cols, int rows, double spacing) {
+    public static void init() {
+        // making balls in the center
+
+        balls.clear();
+        storage.clear();
+
+        double centerX = (length / 2.0) - 0.4325;
+        double centerY = (width / 2.0) + 0.075;
+
+        int cols = 12;
+        int rows = 30;
+        double spacing = 0.2;
+
         double gridWidthX = (cols - 1) * spacing;
         double gridHeightY = (rows - 1) * spacing;
 
@@ -104,23 +116,7 @@ public class Simulation {
                 new Pose3d(x, y, z, new Rotation3d()), 
                 ballRadius
             ));
-        }   
-    }
-
-    public static void init() {
-        // making balls in the center
-
-        balls.clear();
-        storage.clear();
-
-        double centerX = (length / 2.0) - 0.4325;
-        double centerY = (width / 2.0) + 0.075;
-
-        int cols = 12;
-        int rows = 30;
-        double spacing = 0.2;
-
-        makeBalls(centerX, centerY, cols, rows, spacing);
+        }
 
         // later add the balls on each teams sides
         //makeBalls(0.5, centerY + 2, 6, 4, spacing);

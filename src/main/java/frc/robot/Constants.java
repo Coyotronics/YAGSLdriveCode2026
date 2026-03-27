@@ -4,7 +4,8 @@
 
 package frc.robot;
 
-import edu.wpi.first.math.geometry.Pose3d;
+import com.thethriftybot.server.CAN;
+
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import swervelib.math.Matter;
@@ -27,6 +28,7 @@ import swervelib.math.Matter;
 
 public final class Constants
 {
+  public static final String limelightName = "limelight";
 
   public static final double ROBOT_MASS = (148 - 20.3) * 0.453592; // 32lbs * kg per pound
   public static final Matter CHASSIS    = new Matter(new Translation3d(0, 0, Units.inchesToMeters(8)), ROBOT_MASS);
@@ -40,11 +42,6 @@ public final class Constants
 //    public static final PIDConstants TRANSLATION_PID = new PIDConstants(0.7, 0, 0);
 //    public static final PIDConstants ANGLE_PID       = new PIDConstants(0.4, 0, 0.01);
 //  }
-
-  public static String limelightName = "limelight";
-  public static Pose3d cameraOffsetFromRobotCenter;
-  public static Translation3d turretPivotCenterFromCamera;
-public static String photonCameraName;
 
   public static final class DrivebaseConstants
   {
@@ -70,7 +67,7 @@ static {
   CANids[12] = true; // drivebase backleft steer
 
   CANids[22] = true; // drivebase backright drive
-  CANids[37] = true; // drivebase backright steer
+  CANids[37] = true; // drivebase backright steer //CHANGE TAPE
 
   CANids[5] = true;  // drivebase frontleft drive
   CANids[10] = true; // drivebase frontleft steer
@@ -87,6 +84,8 @@ static {
   CANids[39] = true; // shooter bottom flywheel left
 
   CANids[47] = true; // hood 
+
+  CANids[1] = true;  // intake arm CHANGE TAPE
 }
 
 }
