@@ -59,6 +59,16 @@ import frc.robot.LimelightHelpers;
 import frc.robot.constants.*;
 import edu.wpi.first.math.VecBuilder;
 
+// import limelight.Limelight;
+// import limelight.networktables.AngularVelocity3d;
+// import limelight.networktables.LimelightPoseEstimator;
+// import limelight.networktables.LimelightResults;
+// import limelight.networktables.LimelightSettings.LEDMode;
+// import limelight.networktables.Orientation3d;
+// import limelight.networktables.PoseEstimate;
+// import limelight.networktables.LimelightPoseEstimator.EstimationMode;
+// import limelight.networktables.target.pipeline.NeuralClassifier;
+
 public class SwerveSubsystem extends SubsystemBase
 {
 
@@ -136,38 +146,43 @@ public class SwerveSubsystem extends SubsystemBase
   public void periodic()
   {
     LimelightHelpers.SetRobotOrientation(
-      "limelight-", // TODO: limelight name
+      "limelight-shooter", // TODO: limelight name
       getHeading().getDegrees(),
       0, 0, 0, 0, 0);
     
     double omegaRPS = Math.abs(swerveDrive.getRobotVelocity().omegaRadiansPerSecond);
-    // var LLmeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight-shooter"); 
-    var LLmeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight-"); // TODO: Limelight Name
+    var LLmeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight-shooter"); 
+    // var LLmeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight-shooter"); // TODO: Limelight Name
 
-    if(LLmeasurement != null && LLmeasurement.tagCount > 0 && LLmeasurement.avgTagDist < 5.0 && omegaRPS < 2.0)
-    //  
-    { 
+    // if(LLmeasurement != null && LLmeasurement.tagCount > 0)
+    // {
+    // System.out.println(LLmeasurement.tagCount);
+    //}
 
-      // Can tune 0.5 to change how much we trust vision
-      double xyStdDev = 0.5 * Math.pow(LLmeasurement.avgTagDist, 2); 
-      // double rotStdDev = 0.5 * Math.pow(LLmeasurement.avgTagDist, 2); // reccomended approach
-      double rotStdDev = 9999;  // theoretical better approach which trusts gyro more
+    // if(LLmeasurement != null && LLmeasurement.tagCount > 0 && LLmeasurement.avgTagDist < 5.0 && omegaRPS < 2.0)
+    // //  
+    // { 
 
-      if (LLmeasurement.tagCount > 1) 
-      {
-          xyStdDev = xyStdDev / 2.0; 
-      }
+    //   // Can tune 0.5 to change how much we trust vision
+    //   double xyStdDev = 0.5 * Math.pow(LLmeasurement.avgTagDist, 2); 
+    //   // double rotStdDev = 0.5 * Math.pow(LLmeasurement.avgTagDist, 2); // reccomended approach
+    //   double rotStdDev = 9999;  // theoretical better approach which trusts gyro more
 
-      swerveDrive.addVisionMeasurement(
-        LLmeasurement.pose,
-        LLmeasurement.timestampSeconds,
-        VecBuilder.fill(xyStdDev, xyStdDev, rotStdDev));
+    //   if (LLmeasurement.tagCount > 1) 
+    //   {
+    //       xyStdDev = xyStdDev / 2.0; 
+    //   }
 
-      m_field.getObject("vision").setPose(LLmeasurement.pose);
-      System.out.println("AprilTag Detected");
-      System.out.println("LL: " + LLmeasurement + " tags: " + (LLmeasurement != null ? LLmeasurement.tagCount : "null"));
-      // resetOdometry(LLmeasurement.pose); // What they did in the video, maybe worse than the above
-    }
+    //   swerveDrive.addVisionMeasurement(
+    //     LLmeasurement.pose,
+    //     LLmeasurement.timestampSeconds,
+    //     VecBuilder.fill(xyStdDev, xyStdDev, rotStdDev));
+
+    //   m_field.getObject("vision").setPose(LLmeasurement.pose);
+    //   // System.out.println("AprilTag Detected");
+    //   // System.out.println("LL: " + LLmeasurement + " tags: " + (LLmeasurement != null ? LLmeasurement.tagCount : "null"));
+    //   // resetOdometry(LLmeasurement.pose); // What they did in the video, maybe worse than the above
+    // }
   }
 
   @Override
