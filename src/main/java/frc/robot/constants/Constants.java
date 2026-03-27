@@ -85,6 +85,8 @@ static {
   CANids[47] = true; // hood 
 
   CANids[1] = true;  // intake arm CHANGE TAPE
+
+  CANids[12] = true; // intake arm rollers
 }
 
 }

@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Meter;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.commands.PathfindingCommand;
@@ -26,7 +28,6 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -39,7 +40,6 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.DoubleSupplier;
@@ -57,24 +57,17 @@ import swervelib.telemetry.SwerveDriveTelemetry;
 import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
 import frc.robot.LimelightHelpers;
 import frc.robot.constants.*;
-import limelight.Limelight;
 import edu.wpi.first.math.VecBuilder;
 
-import limelight.Limelight;
-import limelight.networktables.AngularVelocity3d;
-import limelight.networktables.LimelightPoseEstimator;
-import limelight.networktables.LimelightResults;
-import limelight.networktables.LimelightSettings.LEDMode;
-import limelight.networktables.Orientation3d;
-import limelight.networktables.PoseEstimate;
-import limelight.networktables.LimelightPoseEstimator.EstimationMode;
-import limelight.networktables.target.pipeline.NeuralClassifier;
-
-import static edu.wpi.first.units.Units.*;
-
-
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation3d;
+// import limelight.Limelight;
+// import limelight.networktables.AngularVelocity3d;
+// import limelight.networktables.LimelightPoseEstimator;
+// import limelight.networktables.LimelightResults;
+// import limelight.networktables.LimelightSettings.LEDMode;
+// import limelight.networktables.Orientation3d;
+// import limelight.networktables.PoseEstimate;
+// import limelight.networktables.LimelightPoseEstimator.EstimationMode;
+// import limelight.networktables.target.pipeline.NeuralClassifier;
 
 public class SwerveSubsystem extends SubsystemBase
 {
@@ -85,12 +78,6 @@ public class SwerveSubsystem extends SubsystemBase
   private final SwerveDrive swerveDrive;
 
   public final Field2d m_field = new Field2d();
-
-  Limelight limelight = new Limelight("limelight-shooter"); 
-
-  LimelightPoseEstimator  limelightPoseEstimator;
-
-
 
   /**
    * Initialize {@link SwerveDrive} with the directory provided.
@@ -132,23 +119,10 @@ public class SwerveSubsystem extends SubsystemBase
    // RobotModeTriggers.autonomous().onTrue(Commands.runOnce(this::zeroGyroWithAlliance));
 
    swerveDrive.setModuleStateOptimization(true);
+    
+  }
 
-   setUplimelight();
-       
-     }
-   
-    private void setUplimelight() {
-         
-     swerveDrive.stopOdometryThread();
-      limelight.getSettings()
-               .withPipelineIndex(0)
-               .withCameraOffset(new Pose3d( (11.0 + 1.0/8.0), -13.0, 17.5, new Rotation3d(0.0, Units.degreesToRadians(63.0), 0.0)))
-               .withAprilTagIdFilter(List.of(17, 18, 19, 20, 21, 22, 6, 7, 8, 9, 10, 11))
-               .save();
-      limelightPoseEstimator = limelight.createPoseEstimator(EstimationMode.MEGATAG2);
-     }
-   
-     /**
+  /**
    * Construct the swerve drive.
    *
    * @param driveCfg      SwerveDriveConfiguration for the swerve.
@@ -171,102 +145,47 @@ public class SwerveSubsystem extends SubsystemBase
   @Override
   public void periodic()
   {
-    limelightPeriodic();
+    LimelightHelpers.SetRobotOrientation(
+      "limelight-shooter", // TODO: limelight name
+      getHeading().getDegrees(),
+      0, 0, 0, 0, 0);
+    
+    double omegaRPS = Math.abs(swerveDrive.getRobotVelocity().omegaRadiansPerSecond);
+    var LLmeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight-shooter"); 
+    // var LLmeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight-shooter"); // TODO: Limelight Name
+
+    // if(LLmeasurement != null && LLmeasurement.tagCount > 0)
+    // {
+    // System.out.println(LLmeasurement.tagCount);
+    //}
+
+    // if(LLmeasurement != null && LLmeasurement.tagCount > 0 && LLmeasurement.avgTagDist < 5.0 && omegaRPS < 2.0)
+    // //  
+    // { 
+
+    //   // Can tune 0.5 to change how much we trust vision
+    //   double xyStdDev = 0.5 * Math.pow(LLmeasurement.avgTagDist, 2); 
+    //   // double rotStdDev = 0.5 * Math.pow(LLmeasurement.avgTagDist, 2); // reccomended approach
+    //   double rotStdDev = 9999;  // theoretical better approach which trusts gyro more
+
+    //   if (LLmeasurement.tagCount > 1) 
+    //   {
+    //       xyStdDev = xyStdDev / 2.0; 
+    //   }
+
+    //   swerveDrive.addVisionMeasurement(
+    //     LLmeasurement.pose,
+    //     LLmeasurement.timestampSeconds,
+    //     VecBuilder.fill(xyStdDev, xyStdDev, rotStdDev));
+
+    //   m_field.getObject("vision").setPose(LLmeasurement.pose);
+    //   // System.out.println("AprilTag Detected");
+    //   // System.out.println("LL: " + LLmeasurement + " tags: " + (LLmeasurement != null ? LLmeasurement.tagCount : "null"));
+    //   // resetOdometry(LLmeasurement.pose); // What they did in the video, maybe worse than the above
+    // }
   }
-        // LimelightHelpers.SetRobotOrientation(
-        //   "limelight-shooter", // TODO: limelight name
-        //   getHeading().getDegrees(),
-        //   0, 0, 0, 0, 0);
-        
-        // double omegaRPS = Math.abs(swerveDrive.getRobotVelocity().omegaRadiansPerSecond);
-        // // var LLmeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight-shooter"); 
-        // var LLmeasurement = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight"); // TODO: Limelight Name
-    
-        // // TODO: add field2D for debugging, doing something to make sure vision and odometry don't clash too much, make MegaTag2 stuff more reliable by making it trust less when it's far
-        // if(LLmeasurement != null && LLmeasurement.tagCount > 0 && LLmeasurement.avgTagDist < 5.0 && omegaRPS < 2.0)
-        // //  
-        // { 
-    
-        //   // Can tune 0.5 to change how much we trust vision
-        //   double xyStdDev = 0.5 * Math.pow(LLmeasurement.avgTagDist, 2); 
-        //   // double rotStdDev = 0.5 * Math.pow(LLmeasurement.avgTagDist, 2); // reccomended approach
-        //   double rotStdDev = 9999;  // theoretical better approach which trusts gyro more
-    
-        //   if (LLmeasurement.tagCount > 1) 
-        //   {
-        //       xyStdDev = xyStdDev / 2.0; 
-        //   }
-    
-        //   swerveDrive.addVisionMeasurement(
-        //     LLmeasurement.pose,
-        //     LLmeasurement.timestampSeconds,
-        //     VecBuilder.fill(xyStdDev, xyStdDev, rotStdDev));
-    
-        //   m_field.getObject("vision").setPose(LLmeasurement.pose);
-        //   System.out.println("AprilTag Detected");
-        //   System.out.println("LL: " + LLmeasurement + " tags: " + (LLmeasurement != null ? LLmeasurement.tagCount : "null"));
-        //   // resetOdometry(LLmeasurement.pose); // What they did in the video, maybe worse than the above
-        // }
-private int     outofAreaReading = 0;
-private boolean initialReading = false;
 
-
-public void limelightPeriodic()
-  {
-    // This method will be called once per scheduler run
-      limelight.getSettings()
-               .withRobotOrientation(new Orientation3d(new Rotation3d(swerveDrive.getOdometryHeading()
-                                                                                 .rotateBy(Rotation2d.kZero)),
-                                                       new AngularVelocity3d(DegreesPerSecond.of(0),
-                                                                             DegreesPerSecond.of(0),
-                                                                             DegreesPerSecond.of(0))))
-               .save();
-      Optional<PoseEstimate>     poseEstimates = limelightPoseEstimator.getPoseEstimate();
-      Optional<LimelightResults> results       = limelight.getLatestResults();
-      if (results.isPresent()/* && poseEstimates.isPresent()*/)
-      {
-        LimelightResults result       = results.get();
-        PoseEstimate     poseEstimate = poseEstimates.get();
-        SmartDashboard.putNumber("Avg Tag Ambiguity", poseEstimate.getAvgTagAmbiguity());
-        SmartDashboard.putNumber("Min Tag Ambiguity", poseEstimate.getMinTagAmbiguity());
-        SmartDashboard.putNumber("Max Tag Ambiguity", poseEstimate.getMaxTagAmbiguity());
-        SmartDashboard.putNumber("Avg Distance", poseEstimate.avgTagDist);
-        SmartDashboard.putNumber("Avg Tag Area", poseEstimate.avgTagArea);
-        SmartDashboard.putNumber("Odom Pose/x", swerveDrive.getPose().getX());
-        SmartDashboard.putNumber("Odom Pose/y", swerveDrive.getPose().getY());
-        SmartDashboard.putNumber("Odom Pose/degrees", swerveDrive.getPose().getRotation().getDegrees());
-        SmartDashboard.putNumber("Limelight Pose/x", poseEstimate.pose.getX());
-        SmartDashboard.putNumber("Limelight Pose/y", poseEstimate.pose.getY());
-        SmartDashboard.putNumber("Limelight Pose/degrees", poseEstimate.pose.toPose2d().getRotation().getDegrees());
-        if (result.valid)
-        {
-          // Pose2d estimatorPose = poseEstimate.pose.toPose2d();
-          Pose2d usefulPose     = result.getBotPose2d(Alliance.Blue);
-          double distanceToPose = usefulPose.getTranslation().getDistance(swerveDrive.getPose().getTranslation());
-          if (distanceToPose < 0.5 || (outofAreaReading > 10) || (outofAreaReading > 10 && !initialReading))
-          {
-            if (!initialReading)
-            {
-              initialReading = true;
-            }
-            outofAreaReading = 0;
-            // System.out.println(usefulPose.toString());
-            swerveDrive.setVisionMeasurementStdDevs(VecBuilder.fill(0.05, 0.05, 0.022));
-            // System.out.println(result.timestamp_LIMELIGHT_publish);
-            // System.out.println(result.timestamp_RIOFPGA_capture);
-            swerveDrive.addVisionMeasurement(usefulPose, result.timestamp_RIOFPGA_capture);
-          } else
-          {
-            outofAreaReading += 1;
-          }
-  //        swerveDrive.addVisionMeasurement(estimatorPose, poseEstimate.timestampSeconds);
-        }
-  
-      }
-
-  }
-  
-      @Override
+  @Override
   public void simulationPeriodic()
   {
   }

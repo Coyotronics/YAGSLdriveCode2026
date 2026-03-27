@@ -159,7 +159,7 @@ public class RobotContainer
     //                             ), ShooterFlywheel));
 
     
-    Conveyor.setDefaultCommand(Commands.run(() -> Conveyor.setDutyCycle(0), Conveyor));
+    Conveyor.setDefaultCommand(Commands.run(() -> Conveyor.setDutyCycle(0.5), Conveyor));
 
     ShooterFlywheel.setDefaultCommand(Commands.run(() -> ShooterFlywheel.setBothDutyCycleSetpoint(0), ShooterFlywheel)); // TODO: make sure to take this away
 
@@ -258,12 +258,12 @@ public class RobotContainer
     // else
     // {
 
-      // driverXbox.povUp().whileTrue(Commands.run(() -> 
-      //                                         {HoodSubsystem.setVelocity(10);
-      //                                           System.out.println("Hood set to 10");}, HoodSubsystem));
-      // driverXbox.povDown().whileTrue(Commands.run(() -> 
-      //                                            {HoodSubsystem.setVelocity(-10);
-      //                                              System.out.println("Hood set to -10");}, HoodSubsystem));
+      driverXbox.povUp().whileTrue(Commands.run(() -> 
+                                              {HoodSubsystem.setVelocity(10);
+                                                System.out.println("Hood set to 10");}, HoodSubsystem));
+      driverXbox.povDown().whileTrue(Commands.run(() -> 
+                                                 {HoodSubsystem.setVelocity(-10);
+                                                   System.out.println("Hood set to -10");}, HoodSubsystem));
 
       driverXbox.rightTrigger(0.05).whileTrue(Commands.run(() -> 
                                               {ShooterFlywheel.setBothDutyCycleSetpoint(
@@ -289,8 +289,8 @@ public class RobotContainer
                                               
       driverXbox.x().onTrue(Commands.run(() -> IntakeArm.popOut(), IntakeArm));
 
-      driverXbox.povUp().onTrue(HoodSubsystem.setDegreeCommand(30));
-      driverXbox.povDown().onTrue(HoodSubsystem.setDegreeCommand(60));
+      // driverXbox.povUp().onTrue(HoodSubsystem.setDegreeCommand(30));
+      // driverXbox.povDown().onTrue(HoodSubsystem.setDegreeCommand(60));
 
     //      var topRightOfTrench = new Pose2d().getTranslation();
     // var bottomLeftOfTrench = new Pose2d().getTranslation();
