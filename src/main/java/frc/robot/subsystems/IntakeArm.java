@@ -96,9 +96,7 @@ public class IntakeArm extends SubsystemBase
 
   // Arm Mechanism
   private Arm arm = new Arm(armCfg);
-  /**
-   * Creates a new ExampleSubsystem.
-   */
+
   public IntakeArm()
   {
   }
