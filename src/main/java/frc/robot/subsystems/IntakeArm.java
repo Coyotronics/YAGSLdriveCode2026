@@ -61,8 +61,8 @@ public class IntakeArm extends SubsystemBase
   private SmartMotorControllerConfig masterConfig            = new SmartMotorControllerConfig(this)
       .withControlMode(ControlMode.CLOSED_LOOP)
 
-      .withClosedLoopController(4.5, 0, 0.5)
-      .withFeedforward(new ArmFeedforward(0.15, 0, 100, 0))
+      .withClosedLoopController(3.5, 0, 0.3)
+      .withFeedforward(new ArmFeedforward(0.15, 0.5, 0, 0))
 
       .withSimClosedLoopController(3.5, 0, 0.3)
       .withSimFeedforward(new ArmFeedforward(0.15, 0.5, 0, 0))
@@ -96,7 +96,6 @@ public class IntakeArm extends SubsystemBase
 
   // Arm Mechanism
   private Arm arm = new Arm(armCfg);
-
   /**
    * Creates a new ExampleSubsystem.
    */

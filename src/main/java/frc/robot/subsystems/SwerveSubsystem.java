@@ -137,7 +137,7 @@ public class SwerveSubsystem extends SubsystemBase
        
      }
    
-     private void setUplimelight() {
+    private void setUplimelight() {
          
      swerveDrive.stopOdometryThread();
       limelight.getSettings()
@@ -171,8 +171,8 @@ public class SwerveSubsystem extends SubsystemBase
   @Override
   public void periodic()
   {
-
     limelightPeriodic();
+  }
         // LimelightHelpers.SetRobotOrientation(
         //   "limelight-shooter", // TODO: limelight name
         //   getHeading().getDegrees(),
@@ -207,13 +207,14 @@ public class SwerveSubsystem extends SubsystemBase
         //   System.out.println("LL: " + LLmeasurement + " tags: " + (LLmeasurement != null ? LLmeasurement.tagCount : "null"));
         //   // resetOdometry(LLmeasurement.pose); // What they did in the video, maybe worse than the above
         // }
-      }
+private int     outofAreaReading = 0;
+private boolean initialReading = false;
 
-    private int     outofAreaReading = 0;
-    private boolean initialReading = false;
-    
-      private void limelightPeriodic() {
-        limelight.getSettings()
+
+public void limelightPeriodic()
+  {
+    // This method will be called once per scheduler run
+      limelight.getSettings()
                .withRobotOrientation(new Orientation3d(new Rotation3d(swerveDrive.getOdometryHeading()
                                                                                  .rotateBy(Rotation2d.kZero)),
                                                        new AngularVelocity3d(DegreesPerSecond.of(0),
@@ -262,8 +263,9 @@ public class SwerveSubsystem extends SubsystemBase
         }
   
       }
-      }
-    
+
+  }
+  
       @Override
   public void simulationPeriodic()
   {
