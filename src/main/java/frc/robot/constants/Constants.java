@@ -63,7 +63,7 @@ public static boolean[] CANids = new boolean[63];
 
 static {
   CANids[36] = true; // drivebase backleft drive
-  CANids[12] = true; // drivebase backleft steer
+  CANids[14] = true; // drivebase backleft steer
 
   CANids[22] = true; // drivebase backright drive
   CANids[37] = true; // drivebase backright steer //CHANGE TAPE

@@ -55,7 +55,7 @@ public class IntakeArm extends SubsystemBase
 
   private SparkMax             m_masterMotor   = new SparkMax(1, MotorType.kBrushless); // TODO: fix this ID, something is wrong
 
-  private SparkAbsoluteEncoder m_masterAbsoluteEncoder = m_masterMotor.getAbsoluteEncoder();
+  //private SparkAbsoluteEncoder m_masterAbsoluteEncoder = m_masterMotor.getAbsoluteEncoder();
  
 
   private SmartMotorControllerConfig masterConfig            = new SmartMotorControllerConfig(this)
@@ -71,11 +71,11 @@ public class IntakeArm extends SubsystemBase
       .withMotorInverted(true)
       .withIdleMode(MotorMode.BRAKE)
       .withStatorCurrentLimit(Amps.of(40))      
-      .withExternalEncoder(m_masterAbsoluteEncoder)
+      //.withExternalEncoder(m_masterAbsoluteEncoder)
       .withSoftLimit(Degrees.of(-5), Degrees.of(120))
-      .withExternalEncoderInverted(true)
+      //.withExternalEncoderInverted(true)
       // .withExternalEncoderZeroOffset(masterAbsoluteEncoderZeroOffset) // Remove if configured in REV HW Client
-      .withUseExternalFeedbackEncoder(true)
+     // .withUseExternalFeedbackEncoder(true)
       
       .withResetPreviousConfig(false);
 
@@ -150,7 +150,7 @@ public class IntakeArm extends SubsystemBase
   //pop out command
   public final Current CurrentThreshold = Amps.of(10); // Current threshold to detect when the arm has hit its hard limit 
 	Debouncer currentDebouncer = new Debouncer(0.001); // Current threshold is only detected if exceeded for 0.1
-	Voltage runVolts = Volts.of(-1); // Volts required to run the mechanism down. Could be negative if the mechanism
+	Voltage runVolts = Volts.of(4); // Volts required to run the mechanism down. Could be negative if the mechanism
 
 
 public Command popOut() {

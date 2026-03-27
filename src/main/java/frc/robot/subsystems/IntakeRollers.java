@@ -31,7 +31,7 @@ public class IntakeRollers extends SubsystemBase {
 
   // same exact logic, just renamed for an intake roller
 
-    private final SparkMax intakeRollerMotor = new SparkMax(0, MotorType.kBrushless); // TODO: SET CAN IDS
+    private final SparkMax intakeRollerMotor = new SparkMax(12, MotorType.kBrushless); // TODO: SET CAN IDS
 
 
     private final SmartMotorControllerConfig intakeRollerMotorConfig =
@@ -48,7 +48,7 @@ public class IntakeRollers extends SubsystemBase {
                     //.withVoltageCompensation(Volts.of(12));
 
     private final SmartMotorController intakeRollerMotorController =
-            new SparkWrapper(intakeRollerMotor, DCMotor.getNeoVortex(2), intakeRollerMotorConfig);
+            new SparkWrapper(intakeRollerMotor, DCMotor.getNeoVortex(1), intakeRollerMotorConfig);
 
     private final FlyWheelConfig intakeRollerConfig =
             new FlyWheelConfig(intakeRollerMotorController)

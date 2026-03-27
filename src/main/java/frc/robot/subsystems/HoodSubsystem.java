@@ -45,7 +45,7 @@ public class HoodSubsystem extends SubsystemBase {//Modeled as a pivot, since it
           .withStartingPosition(Degrees.of(0))
           //.withClosedLoopRampRate(Seconds.of(0.25)) //Don't add it unless it's too fast(limit the rate & help slow it down)->check yams docs
           //.withOpenLoopRampRate(Seconds.of(0.25))
-          .withFeedforward(new SimpleMotorFeedforward(0.2, 0, 0))
+          .withFeedforward(new SimpleMotorFeedforward(0.5, 0, 0))
           .withSimFeedforward(new SimpleMotorFeedforward(0,0,0))
           .withControlMode(ControlMode.CLOSED_LOOP);
 

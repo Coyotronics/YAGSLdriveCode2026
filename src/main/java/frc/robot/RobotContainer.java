@@ -161,13 +161,13 @@ public class RobotContainer
     
     Conveyor.setDefaultCommand(Commands.run(() -> Conveyor.setDutyCycle(0), Conveyor));
 
-    ShooterFlywheel.setDefaultCommand(Commands.run(() -> ShooterFlywheel.setBothDutyCycleSetpoint(0.5), ShooterFlywheel)); // TODO: make sure to take this away
+    ShooterFlywheel.setDefaultCommand(Commands.run(() -> ShooterFlywheel.setBothDutyCycleSetpoint(0), ShooterFlywheel)); // TODO: make sure to take this away
 
     
    
 
     // HoodSubsystem.setDefaultCommand(Commands.run(() -> HoodSubsystem.setVelocity(0), HoodSubsystem));
-    HoodSubsystem.setDefaultCommand(Commands.run(() -> {}, HoodSubsystem));
+    HoodSubsystem.setDefaultCommand(Commands.run(() -> {HoodSubsystem.setVelocity(0);}, HoodSubsystem));
 
     IntakeArm.setDefaultCommand(Commands.run(() -> IntakeArm.setVelocity(0), IntakeArm));
 
@@ -279,13 +279,13 @@ public class RobotContainer
                                               {IntakeRollers.setDutyCycle(
                                                   Math.max(-1, Math.min(1, driverXbox.getLeftTriggerAxis())));
                                                 System.out.println("IntakeRollers set to " + driverXbox.getLeftTriggerAxis());}, ShooterFlywheel));
-      driverXbox.povRight().whileTrue(Commands.run(() -> 
-                                              {IntakeArm.setVelocity(10);
-                                                System.out.println("Intake Arm set to 10");}, IntakeArm));                                
+      // driverXbox.povRight().whileTrue(Commands.run(() -> 
+      //                                         {IntakeArm.setVelocity(10);
+      //                                           System.out.println("Intake Arm set to 10");}, IntakeArm));                                
 
-      driverXbox.povLeft().whileTrue(Commands.run(() -> 
-                                              {IntakeArm.setVelocity(-10);
-                                                System.out.println("Intake Arm set to -10");}, IntakeArm));
+      // driverXbox.povLeft().whileTrue(Commands.run(() -> 
+      //                                         {IntakeArm.setVelocity(-10);
+      //                                           System.out.println("Intake Arm set to -10");}, IntakeArm));
                                               
       driverXbox.x().onTrue(Commands.run(() -> IntakeArm.popOut(), IntakeArm));
 
