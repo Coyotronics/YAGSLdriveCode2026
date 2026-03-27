@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkAbsoluteEncoder;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
@@ -28,6 +29,9 @@ import edu.wpi.first.units.*;
 public class HoodSubsystem extends SubsystemBase {//Modeled as a pivot, since it's not really affected by gravity
 
   private final SparkMax hoodMotor = new SparkMax(47, MotorType.kBrushless);
+  private SparkAbsoluteEncoder m_masterAbsoluteEncoder = hoodMotor.getAbsoluteEncoder();
+
+
   private final SmartMotorControllerConfig motorConfig =
       new SmartMotorControllerConfig(this)
           .withClosedLoopController(4,0,0)
@@ -47,7 +51,11 @@ public class HoodSubsystem extends SubsystemBase {//Modeled as a pivot, since it
           //.withOpenLoopRampRate(Seconds.of(0.25))
           .withFeedforward(new SimpleMotorFeedforward(0.2, 0, 0))
           .withSimFeedforward(new SimpleMotorFeedforward(0,0,0))
-          .withControlMode(ControlMode.CLOSED_LOOP);
+          .withControlMode(ControlMode.CLOSED_LOOP)
+          .withExternalEncoder(m_masterAbsoluteEncoder)
+          .withExternalEncoderInverted(true)
+          //.withExternalEncoderZeroOffset(masterAbsoluteEncoderZeroOffset) // Remove if configured in REV HW Client
+          .withUseExternalFeedbackEncoder(true);
 
   private final SmartMotorController motor =
       new SparkWrapper(hoodMotor, DCMotor.getNeoVortex(1), motorConfig);
@@ -63,9 +71,9 @@ public class HoodSubsystem extends SubsystemBase {//Modeled as a pivot, since it
   private final PivotConfig m_config =
       new PivotConfig(motor)
           .withHardLimit(Degrees.of(0), Degrees.of(50))
-          .withSoftLimits(Degrees.of(-10), Degrees.of(50))
+          .withSoftLimits(Degrees.of(55), Degrees.of(95))
           .withTelemetry("Hood", TelemetryVerbosity.HIGH)
-          .withStartingPosition(Degrees.of(0))
+          .withStartingPosition(Degrees.of(90))
           //.withMOI(Inches.of(7), Pounds.of(2))
           .withMOI( KilogramSquareMeters.of(Pounds.of(8).in(Kilograms) * Inches.of(14).in(Meters) * Inches.of(14).in(Meters)));
 
