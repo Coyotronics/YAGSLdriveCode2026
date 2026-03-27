@@ -213,6 +213,7 @@ public class SwerveSubsystem extends SubsystemBase
     private boolean initialReading = false;
     
       private void limelightPeriodic() {
+        System.out.println("I am running");
         limelight.getSettings()
                .withRobotOrientation(new Orientation3d(new Rotation3d(swerveDrive.getOdometryHeading()
                                                                                  .rotateBy(Rotation2d.kZero)),
@@ -222,8 +223,15 @@ public class SwerveSubsystem extends SubsystemBase
                .save();
       Optional<PoseEstimate>     poseEstimates = limelightPoseEstimator.getPoseEstimate();
       Optional<LimelightResults> results       = limelight.getLatestResults();
+
+      if (poseEstimates.get() != null){
+        System.out.println("I have pose estimates!");
+        System.out.println(poseEstimates.get().toString());
+        //System.out.println(results.get().toString());
+      }
       if (results.isPresent()/* && poseEstimates.isPresent()*/)
       {
+        System.out.println("I have results!");
         LimelightResults result       = results.get();
         PoseEstimate     poseEstimate = poseEstimates.get();
         SmartDashboard.putNumber("Avg Tag Ambiguity", poseEstimate.getAvgTagAmbiguity());
@@ -239,10 +247,11 @@ public class SwerveSubsystem extends SubsystemBase
         SmartDashboard.putNumber("Limelight Pose/degrees", poseEstimate.pose.toPose2d().getRotation().getDegrees());
         if (result.valid)
         {
+          System.out.println("I have valid results!");
           // Pose2d estimatorPose = poseEstimate.pose.toPose2d();
           Pose2d usefulPose     = result.getBotPose2d(Alliance.Blue);
           double distanceToPose = usefulPose.getTranslation().getDistance(swerveDrive.getPose().getTranslation());
-          if (distanceToPose < 0.5 || (outofAreaReading > 10) || (outofAreaReading > 10 && !initialReading))
+          if (/*distanceToPose < 0.5 /*|| (outofAreaReading > -10) || (/*outofAreaReading > 10 true && !initialReading */ true)
           {
             if (!initialReading)
             {
@@ -254,6 +263,7 @@ public class SwerveSubsystem extends SubsystemBase
             // System.out.println(result.timestamp_LIMELIGHT_publish);
             // System.out.println(result.timestamp_RIOFPGA_capture);
             swerveDrive.addVisionMeasurement(usefulPose, result.timestamp_RIOFPGA_capture);
+            System.out.println("I actually have a pose im adding!");
           } else
           {
             outofAreaReading += 1;

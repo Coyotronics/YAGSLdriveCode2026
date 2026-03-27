@@ -159,7 +159,7 @@ public class RobotContainer
     //                             ), ShooterFlywheel));
 
     
-    Conveyor.setDefaultCommand(Commands.run(() -> Conveyor.setDutyCycle(0.5), Conveyor));
+    Conveyor.setDefaultCommand(Commands.run(() -> Conveyor.setDutyCycle(0), Conveyor));
 
     ShooterFlywheel.setDefaultCommand(Commands.run(() -> ShooterFlywheel.setBothDutyCycleSetpoint(0), ShooterFlywheel)); // TODO: make sure to take this away
 
@@ -169,7 +169,7 @@ public class RobotContainer
     // HoodSubsystem.setDefaultCommand(Commands.run(() -> HoodSubsystem.setVelocity(0), HoodSubsystem));
     HoodSubsystem.setDefaultCommand(Commands.run(() -> {HoodSubsystem.setVelocity(0);}, HoodSubsystem));
 
-    IntakeArm.setDefaultCommand(Commands.run(() -> IntakeArm.setVelocity(0), IntakeArm));
+    IntakeArm.setDefaultCommand(Commands.run(() -> IntakeArm.setVelocity(20), IntakeArm));
 
     IntakeRollers.setDefaultCommand(Commands.run(() -> IntakeRollers.setDutyCycleSetpoint(0), IntakeRollers)); 
     //Change this to 0.5 or something when comp comes around, also use set velocity instead of duty cycle for PID control. this rn is for testing
@@ -271,14 +271,14 @@ public class RobotContainer
                                                 System.out.println("Shooter set to " + driverXbox.getRightTriggerAxis());}, ShooterFlywheel));
           
       driverXbox.leftTrigger(0.05).whileTrue(Commands.run(() -> 
-                                              {Conveyor.setDutyCycle(
-                                                  Math.max(-1, Math.min(1, driverXbox.getLeftTriggerAxis())));
-                                                System.out.println("Conveyor set to " + driverXbox.getLeftTriggerAxis());}, ShooterFlywheel));
+                                              {Conveyor.setDutyCycleSetpoint(
+                                                  Math.max(-1, Math.min(1,-0.2)));
+                                                System.out.println("Conveyor set to " + "-0.2");}, Conveyor));
                                             
       driverXbox.leftTrigger(0.05).whileTrue(Commands.run(() -> 
-                                              {IntakeRollers.setDutyCycle(
+                                              {IntakeRollers.setDutyCycleSetpoint(
                                                   Math.max(-1, Math.min(1, driverXbox.getLeftTriggerAxis())));
-                                                System.out.println("IntakeRollers set to " + driverXbox.getLeftTriggerAxis());}, ShooterFlywheel));
+                                                System.out.println("IntakeRollers set to " + driverXbox.getLeftTriggerAxis());}, IntakeRollers));
       // driverXbox.povRight().whileTrue(Commands.run(() -> 
       //                                         {IntakeArm.setVelocity(10);
       //                                           System.out.println("Intake Arm set to 10");}, IntakeArm));                                
@@ -287,7 +287,7 @@ public class RobotContainer
       //                                         {IntakeArm.setVelocity(-10);
       //                                           System.out.println("Intake Arm set to -10");}, IntakeArm));
                                               
-      driverXbox.x().onTrue(Commands.run(() -> IntakeArm.popOut(), IntakeArm));
+      driverXbox.x().whileTrue(IntakeArm.popOut());
 
       // driverXbox.povUp().onTrue(HoodSubsystem.setDegreeCommand(30));
       // driverXbox.povDown().onTrue(HoodSubsystem.setDegreeCommand(60));

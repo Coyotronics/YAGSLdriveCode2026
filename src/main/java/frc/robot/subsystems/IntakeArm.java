@@ -53,7 +53,7 @@ import static edu.wpi.first.units.Units.*;
 public class IntakeArm extends SubsystemBase
 {
 
-  private SparkMax             m_masterMotor   = new SparkMax(1, MotorType.kBrushless); // TODO: fix this ID, something is wrong
+  private SparkMax             m_masterMotor   = new SparkMax(2, MotorType.kBrushless); // TODO: fix this ID, something is wrong
 
   //private SparkAbsoluteEncoder m_masterAbsoluteEncoder = m_masterMotor.getAbsoluteEncoder();
  
@@ -151,12 +151,15 @@ public class IntakeArm extends SubsystemBase
   public final Current CurrentThreshold = Amps.of(10); // Current threshold to detect when the arm has hit its hard limit 
 	Debouncer currentDebouncer = new Debouncer(0.001); // Current threshold is only detected if exceeded for 0.1
 	Voltage runVolts = Volts.of(4); // Volts required to run the mechanism down. Could be negative if the mechanism
-
+//() -> currentDebouncer.calculate(masterMotorController.getStatorCurrent().gte(CurrentThreshold))
 
 public Command popOut() {
 		return Commands.startRun(masterMotorController::stopClosedLoopController, // Stop the closed loop controller
-				() -> masterMotorController.setVoltage(runVolts)) // Set the voltage of the motor
-				.until(() -> currentDebouncer.calculate(masterMotorController.getStatorCurrent().gte(CurrentThreshold)))
+				() -> {
+              set(0.4);
+              System.out.println("10 fucking volts!!");
+               }) // Set the voltage of the motor
+				.until(() -> true)
 
 				.finallyDo(() -> {
 					masterMotorController.setVoltage(Volts.of(0)); // Stop the motor
