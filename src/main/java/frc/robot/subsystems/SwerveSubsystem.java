@@ -86,7 +86,7 @@ public class SwerveSubsystem extends SubsystemBase
 
   public final Field2d m_field = new Field2d();
 
-  Limelight limelight = new Limelight("limelight");
+  Limelight limelight = new Limelight("limelight-shooter"); 
 
   LimelightPoseEstimator  limelightPoseEstimator;
 
