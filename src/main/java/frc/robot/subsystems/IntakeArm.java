@@ -17,6 +17,8 @@ import frc.robot.constants.Constants;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 
+import org.opencv.features2d.FlannBasedMatcher;
+
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
@@ -72,7 +74,7 @@ public class IntakeArm extends SubsystemBase
       .withIdleMode(MotorMode.BRAKE)
       .withStatorCurrentLimit(Amps.of(40))      
       //.withExternalEncoder(m_masterAbsoluteEncoder)
-      .withSoftLimit(Degrees.of(-5), Degrees.of(120))
+      // .withSoftLimit(Degrees.of(-5), Degrees.of(120))
       //.withExternalEncoderInverted(true)
       // .withExternalEncoderZeroOffset(masterAbsoluteEncoderZeroOffset) // Remove if configured in REV HW Client
      // .withUseExternalFeedbackEncoder(true)
@@ -85,7 +87,7 @@ public class IntakeArm extends SubsystemBase
 
   private ArmConfig armCfg = new ArmConfig(masterMotorController)
       // Hard limit is applied to the simulation.
-      .withHardLimit(Degrees.of(-10), Degrees.of(130))
+     // .withHardLimit(Degrees.of(-10), Degrees.of(130))
       // Length and mass of your arm for sim.
       .withLength(Inches.of(15))
       .withMass(Pounds.of(9))
@@ -153,14 +155,14 @@ public class IntakeArm extends SubsystemBase
 	Voltage runVolts = Volts.of(4); // Volts required to run the mechanism down. Could be negative if the mechanism
 //() -> currentDebouncer.calculate(masterMotorController.getStatorCurrent().gte(CurrentThreshold))
 
-public Command popOut() {
+public Command popOut(double volts) {
 		return Commands.startRun(masterMotorController::stopClosedLoopController, // Stop the closed loop controller
 				() -> {
-              set(0.4);
+              masterMotorController.setDutyCycle(volts);
               System.out.println("10 fucking volts!!");
                }) // Set the voltage of the motor
-				.until(() -> true)
-
+				.until(() -> false)
+        
 				.finallyDo(() -> {
 					masterMotorController.setVoltage(Volts.of(0)); // Stop the motor
 					masterMotorController.setEncoderPosition(Degrees.of(0));

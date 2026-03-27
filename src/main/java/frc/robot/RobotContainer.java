@@ -24,6 +24,8 @@ import frc.robot.subsystems.ShooterFlywheel;
 import frc.robot.subsystems.SwerveSubsystem;
 import swervelib.SwerveInputStream;
 
+import static edu.wpi.first.units.Units.Degrees;
+
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a "declarative" paradigm, very
  * little robot logic should actually be handled in the {@link Robot} periodic methods (other than the scheduler calls).
@@ -169,7 +171,7 @@ public class RobotContainer
     // HoodSubsystem.setDefaultCommand(Commands.run(() -> HoodSubsystem.setVelocity(0), HoodSubsystem));
     HoodSubsystem.setDefaultCommand(Commands.run(() -> {HoodSubsystem.setVelocity(0);}, HoodSubsystem));
 
-    IntakeArm.setDefaultCommand(Commands.run(() -> IntakeArm.setVelocity(20), IntakeArm));
+    IntakeArm.setDefaultCommand(Commands.run(() -> IntakeArm.setDutyCycleSetpoint(0), IntakeArm));
 
     IntakeRollers.setDefaultCommand(Commands.run(() -> IntakeRollers.setDutyCycleSetpoint(0), IntakeRollers)); 
     //Change this to 0.5 or something when comp comes around, also use set velocity instead of duty cycle for PID control. this rn is for testing
@@ -287,7 +289,8 @@ public class RobotContainer
       //                                         {IntakeArm.setVelocity(-10);
       //                                           System.out.println("Intake Arm set to -10");}, IntakeArm));
                                               
-      driverXbox.x().whileTrue(IntakeArm.popOut());
+      driverXbox.x().whileTrue(IntakeArm.popOut(0.4));
+      driverXbox.b().whileTrue(IntakeArm.popOut(-0.4));
 
       // driverXbox.povUp().onTrue(HoodSubsystem.setDegreeCommand(30));
       // driverXbox.povDown().onTrue(HoodSubsystem.setDegreeCommand(60));
