@@ -2,13 +2,7 @@ package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Pounds;
-import static edu.wpi.first.units.Units.RadiansPerSecond;
-
-import java.util.Optional;
-
-import static edu.wpi.first.units.Units.MetersPerSecond;
 
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
@@ -17,10 +11,8 @@ import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.AngularVelocity;
-import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.units.measure.LinearVelocity;
 
 import yams.gearing.GearBox;
 import yams.gearing.MechanismGearing;
@@ -34,7 +26,6 @@ import yams.motorcontrollers.SmartMotorControllerConfig.TelemetryVerbosity;
 import yams.motorcontrollers.local.SparkWrapper;
 
 public class ShooterFlywheel extends SubsystemBase {
-  public static double Diameter = 3.93701;
 
   // Top flywheel
   private final SparkMax topFlywheelMotor = new SparkMax(13, MotorType.kBrushless); //left
@@ -42,16 +33,14 @@ public class ShooterFlywheel extends SubsystemBase {
 
   private final SmartMotorControllerConfig topMotorConfig =
       new SmartMotorControllerConfig(this)
-          .withClosedLoopController(0.1, 0, 0) // 0.3447, 0, 0.0025
-          //.withClosedLoopController(0.3447, 0, 0.0025)
+          .withClosedLoopController(0.3447, 0, 0.0025)
           .withGearing(new MechanismGearing(GearBox.fromReductionStages(1)))
           .withIdleMode(MotorMode.COAST)
           .withTelemetry("TopFlywheelMotor", TelemetryVerbosity.HIGH)
           .withStatorCurrentLimit(Amps.of(60))
           .withMotorInverted(true)
-          .withFeedforward(new SimpleMotorFeedforward(0.17, 0.117, 0.01)) // 0.17, 0.117, 0.01
-          .withSimFeedforward(new SimpleMotorFeedforward(0.2, 0.1, 0)) // 0.27937, 0.089836, 0.014557
-          //.withSimFeedforward(new SimpleMotorFeedforward(0.27937, 0.089836, 0.014557))
+          .withFeedforward(new SimpleMotorFeedforward(0.17, 0.117, 0.01))
+          .withSimFeedforward(new SimpleMotorFeedforward(0.27937, 0.089836, 0.014557))
           .withFollowers(Pair.of(topFlywheelFollowerMotor, true))
           .withControlMode(ControlMode.CLOSED_LOOP);
 
@@ -60,7 +49,7 @@ public class ShooterFlywheel extends SubsystemBase {
 
   private final FlyWheelConfig topFlywheelConfig =
       new FlyWheelConfig(topMotor)
-          .withDiameter(Inches.of(ShooterFlywheel.Diameter))
+          .withDiameter(Inches.of(3.93701))
           .withMass(Pounds.of(0.4516))
           .withTelemetry("TopFlywheel", TelemetryVerbosity.HIGH);
 
@@ -104,18 +93,6 @@ public class ShooterFlywheel extends SubsystemBase {
     return bottomFlywheel.getSpeed();
   }
 
-  public Command setBothLinearVelocityCommand(double mps) {
-    return run(() -> {
-      double radius = Inches.of(ShooterFlywheel.Diameter).in(Meters) / 2.0;
-      double angularSpeed = mps / radius; // w = v / r
-
-      AngularVelocity angularVelocity = RadiansPerSecond.of(angularSpeed);
-
-      topFlywheel.setMechanismVelocitySetpoint(angularVelocity);
-      bottomFlywheel.setMechanismVelocitySetpoint(angularVelocity);
-    });
-  }
-
   public Command setBothVelocityCommand(AngularVelocity velocity) {
     return run(() -> {
         topFlywheel.setMechanismVelocitySetpoint(velocity);
@@ -140,21 +117,9 @@ public class ShooterFlywheel extends SubsystemBase {
     bottomFlywheel.setDutyCycleSetpoint(dutyCycle);
   }
 
-  /*
   public Command stopCommand() {
     return topFlywheel.set(0).alongWith(bottomFlywheel.set(0));
   }
-    */
-
-  public Command stopCommand() {
-    return runOnce(() -> {
-        topFlywheel.setMechanismVelocitySetpoint(RadiansPerSecond.of(0));
-        bottomFlywheel.setMechanismVelocitySetpoint(RadiansPerSecond.of(0));
-
-        topFlywheel.set(0);
-        bottomFlywheel.set(0);
-    });
-}
 
   @Override
   public void periodic() {
@@ -167,4 +132,9 @@ public class ShooterFlywheel extends SubsystemBase {
     topFlywheel.simIterate();
     bottomFlywheel.simIterate();
   }
+
+public AngularVelocity getSpeed() {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'getSpeed'");
+}
 }

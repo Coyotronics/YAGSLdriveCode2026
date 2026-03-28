@@ -129,14 +129,14 @@ public class Robot extends TimedRobot
 
       Translation3d[] intakePoints = new Translation3d[8];
 
-      intakePoints[0] = new Translation3d(lengthHalf, -widthHalf, 2 * heightHalf);
-      intakePoints[1] = new Translation3d(lengthHalf, -widthHalf, 0);
-      intakePoints[2] = new Translation3d(lengthHalf, -widthHalf - 0.25, 2 * heightHalf);
-      intakePoints[3] = new Translation3d(lengthHalf, -widthHalf - 0.25, 0);
-      intakePoints[4] = new Translation3d(-lengthHalf, -widthHalf, 2 * heightHalf);
-      intakePoints[5] = new Translation3d(-lengthHalf, -widthHalf, 0);
-      intakePoints[6] = new Translation3d(-lengthHalf, -widthHalf -0.25, 2 * heightHalf);
-      intakePoints[7] = new Translation3d(-lengthHalf, -widthHalf - 0.25, 0);
+      intakePoints[0] = new Translation3d(widthHalf, lengthHalf, 2 * heightHalf);
+      intakePoints[1] = new Translation3d(widthHalf, lengthHalf,  0);
+      intakePoints[2] = new Translation3d(widthHalf + 0.25, lengthHalf, 2 * heightHalf);
+      intakePoints[3] = new Translation3d(widthHalf + 0.25, lengthHalf, 0);
+      intakePoints[4] = new Translation3d(widthHalf, -lengthHalf, 2 * heightHalf);
+      intakePoints[5] = new Translation3d(widthHalf, -lengthHalf, 0);
+      intakePoints[6] = new Translation3d(widthHalf + 0.25, -lengthHalf, 2 * heightHalf);
+      intakePoints[7] = new Translation3d(widthHalf + 0.25, -lengthHalf, 0);
 
       Translation3d redGoalPos = new Translation3d(11.90, 4.05, 0);
 

@@ -212,7 +212,7 @@ public class Simulation {
         Pose3d spawnPose = transformToWorld(shooterPosition, robotPose);
 
         // yaw is the heading (rotation on the z axis)
-        double yaw = robotPose.getRotation().getZ() + (Math.PI / 2.0);
+        double yaw = robotPose.getRotation().getZ() + (Math.PI);
         double elevationRadians = Math.toRadians(shootAngle);
 
         // horizotnal velocity is the speed along the ground (xy plane) and vy is the speed vertically (z axis)

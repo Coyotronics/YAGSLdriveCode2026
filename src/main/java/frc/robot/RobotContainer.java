@@ -32,6 +32,7 @@ import frc.robot.commands.AlignSwerveCommand;
 import frc.robot.simulation.Simulation;
 import frc.robot.subsystems.HoodSubsystem;
 import frc.robot.subsystems.IntakeArm;
+import frc.robot.subsystems.IntakeRollers;
 import frc.robot.subsystems.RollerSubsystem;
 import frc.robot.subsystems.ShooterFlywheel;
 import frc.robot.subsystems.swervedrive.SwerveSubsystem;
@@ -59,6 +60,8 @@ public class RobotContainer
 
   public final HoodSubsystem      HoodSubsystem = new HoodSubsystem();
   public final IntakeArm          IntakeArm = new IntakeArm();
+
+  public final IntakeRollers      IntakeRollers = new IntakeRollers();
 
 
   /**
@@ -178,7 +181,7 @@ public class RobotContainer
     
     Conveyor.setDefaultCommand(Commands.run(() -> Conveyor.setDutyCycle(0), Conveyor));
 
-    ShooterFlywheel.setDefaultCommand(Commands.run(() -> ShooterFlywheel.setBothDutyCycleSetpoint(0.5), ShooterFlywheel));
+    ShooterFlywheel.setDefaultCommand(Commands.run(() -> ShooterFlywheel.setBothDutyCycleSetpoint(0), ShooterFlywheel));
 
     
    
@@ -272,7 +275,7 @@ public class RobotContainer
     // {
 
       if (Robot.isSimulation()) {
-        driverXbox.x().onTrue(Commands.runOnce(() -> {
+        driverXbox.a().onTrue(Commands.runOnce(() -> {
           Pose2d robotPose = drivebase.getSwerveDrive().getSimulationDriveTrainPose().orElse(drivebase.getPose());
           Simulation.shootBall(new Pose3d(robotPose.getX(), robotPose.getY(), 0, new Rotation3d(robotPose.getRotation())));
         }));
@@ -285,8 +288,12 @@ public class RobotContainer
       //                                            {HoodSubsystem.setVelocity(-10);
       //                                              System.out.println(HoodSubsystem.getAngle().in(Degrees));}, HoodSubsystem));
 
-      driverXbox.povUp().onTrue(HoodSubsystem.setDegreeCommand(30));
-      driverXbox.povDown().onTrue(HoodSubsystem.setDegreeCommand(60));
+      driverXbox.povUp().whileTrue(Commands.run(() -> 
+                                              {HoodSubsystem.setVelocity(10);
+                                                System.out.println("Hood set to 10");}, HoodSubsystem));
+      driverXbox.povDown().whileTrue(Commands.run(() -> 
+                                                 {HoodSubsystem.setVelocity(-10);
+                                                   System.out.println("Hood set to -10");}, HoodSubsystem));
 
       driverXbox.rightTrigger(0.05).whileTrue(Commands.run(() -> 
                                               {ShooterFlywheel.setBothDutyCycleSetpoint(
@@ -294,17 +301,17 @@ public class RobotContainer
                                                 System.out.println("Shooter set to " + driverXbox.getRightTriggerAxis());}, ShooterFlywheel));
           
       driverXbox.leftTrigger(0.05).whileTrue(Commands.run(() -> 
-                                              {Conveyor.setDutyCycle(
+                                              {Conveyor.setDutyCycleSetpoint(
+                                                  Math.max(-1, Math.min(1,-0.2)));
+                                                System.out.println("Conveyor set to " + "-0.2");}, Conveyor));
+                                            
+      driverXbox.leftTrigger(0.05).whileTrue(Commands.run(() -> 
+                                              {IntakeRollers.setDutyCycleSetpoint(
                                                   Math.max(-1, Math.min(1, driverXbox.getLeftTriggerAxis())));
-                                                System.out.println("Conveyor set to " + driverXbox.getLeftTriggerAxis());}, ShooterFlywheel));
-      driverXbox.povRight().whileTrue(Commands.run(() -> 
-                                              {IntakeArm.setVelocity(10);
-                                                System.out.println("Intake Arm set to 10");}, IntakeArm));                                
+                                                System.out.println("IntakeRollers set to " + driverXbox.getLeftTriggerAxis());}, IntakeRollers));
 
-      driverXbox.povLeft().whileTrue(Commands.run(() -> 
-                                              {IntakeArm.setVelocity(-10);
-                                                System.out.println("Intake Arm set to -10");}, IntakeArm));
-
+      driverXbox.x().whileTrue(IntakeArm.popOut(0.4));
+      driverXbox.b().whileTrue(IntakeArm.popOut(-0.4));
 
       driverXbox.y().toggleOnTrue(new AlignSwerveCommand(
           drivebase,
@@ -374,7 +381,7 @@ public class RobotContainer
   public Command getAutonomousCommand()
   {
     // An example command will be run in autonomous
-    return drivebase.getAutonomousCommand("fuel path 2");
+    return drivebase.getAutonomousCommand("mid start 2");
   }
 
   public void setMotorBrake(boolean brake)

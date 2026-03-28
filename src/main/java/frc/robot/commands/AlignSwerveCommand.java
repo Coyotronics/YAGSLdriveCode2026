@@ -50,10 +50,10 @@ public class AlignSwerveCommand extends Command {
 
         // its awful
         //alignPID = new PIDController(0.01, 0, 0.00575);
-        alignPID = new PIDController(1, 0, 0.025);
+        alignPID = new PIDController(0.3, 0, 0.05);
 
-        this.realFeedFoward = new SimpleMotorFeedforward(0.2, 0, 0); 
-        this.simFeedFoward = new SimpleMotorFeedforward(0.25, 0.1, 0);
+        this.realFeedFoward = new SimpleMotorFeedforward(0.5, 0, 0); 
+        this.simFeedFoward = new SimpleMotorFeedforward(0.5, 0.1, 0);
         
         alignPID.setTolerance(0.1);
         alignPID.enableContinuousInput(-Math.PI, Math.PI);
@@ -89,7 +89,7 @@ public class AlignSwerveCommand extends Command {
         double dy = targetPos.getY() - predictedY;
 
         ///////// BE VERY CAREFUL, THE OFFSET COULD BE WRONG, ADJUST AS NEEDED /////////
-        double targetAngle = Math.atan2(dy, dx) + (Math.PI / 2.0);
+        double targetAngle = Math.atan2(dy, dx); //+ (Math.PI / 2.0);
         double headingError = targetAngle - robotPose.getRotation().getRadians();
         headingError = MathUtil.inputModulus(headingError, -Math.PI, Math.PI);
 
