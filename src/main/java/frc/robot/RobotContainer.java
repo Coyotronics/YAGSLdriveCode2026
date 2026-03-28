@@ -6,16 +6,32 @@ package frc.robot;
 
 import java.io.File;
 
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rectangle2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.Measure;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.math.geometry.Rectangle2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.constants.Constants.OperatorConstants;
+// import frc.robot.commands.AlignSwerveCommand;
+// import frc.robot.simulation.Simulation;
 import frc.robot.commands.AimHood;
 import frc.robot.constants.Constants;
 import frc.robot.constants.Constants.OperatorConstants;
@@ -25,10 +41,15 @@ import frc.robot.subsystems.IntakeRollers;
 import frc.robot.subsystems.RollerSubsystem;
 import frc.robot.subsystems.ShooterFlywheel;
 import frc.robot.subsystems.SwerveSubsystem;
+
+import static edu.wpi.first.units.Units.*;
+
+
 import swervelib.SwerveInputStream;
 
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.config.PIDConstants;
@@ -66,8 +87,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.DoubleSupplier;
-import java.util.function.Supplier;
+
 import org.json.simple.parser.ParseException;
 //import org.photonvision.targeting.PhotonPipelineResult;
 import swervelib.SwerveController;
@@ -195,7 +215,13 @@ public class RobotContainer
     DriverStation.silenceJoystickConnectionWarning(true);
 
     defaultCommands();
+
+    NamedCommands.registerCommand("IntakeWithAuto", getAutonomousCommand());
         
+  }
+
+  public HoodSubsystem GetHoodSubsystem() {
+    return HoodSubsystem;
   }
     
   private void defaultCommands() {
@@ -218,7 +244,7 @@ public class RobotContainer
     } else
     {
       System.out.println("Setting default command");
-      drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
+      drivebase.setDefaultCommand(testCommand);
       //drivebase.setDefaultCommand(driveFieldOrientedDirectAngleKeyboard);
       //drivebase.setDefaultCommand(driveFieldOrientedDirectAngle);
       System.out.println("I lowk did this shit");
@@ -335,6 +361,20 @@ public class RobotContainer
     // else
     // {
 
+      if (Robot.isSimulation()) {
+        driverXbox.a().onTrue(Commands.runOnce(() -> {
+          Pose2d robotPose = drivebase.getSwerveDrive().getSimulationDriveTrainPose().orElse(drivebase.getPose());
+         // Simulation.shootBall(new Pose3d(robotPose.getX(), robotPose.getY(), 0, new Rotation3d(robotPose.getRotation())));
+        }));
+      }
+
+      // driverXbox.povUp().whileTrue(Commands.run(() -> 
+      //                                         {HoodSubsystem.setVelocity(10);
+      //                                           System.out.println(HoodSubsystem.getAngle().in(Degrees));}, HoodSubsystem));
+      // driverXbox.povDown().whileTrue(Commands.run(() -> 
+      //                                            {HoodSubsystem.setVelocity(-10);
+      //                                              System.out.println(HoodSubsystem.getAngle().in(Degrees));}, HoodSubsystem));
+
       driverXbox.povUp().whileTrue(Commands.run(() -> 
                                               {HoodSubsystem.setVelocity(10);
                                                 System.out.println("Hood set to 10");
@@ -366,11 +406,19 @@ public class RobotContainer
       //                                         {IntakeArm.setVelocity(-10);
       //                                           System.out.println("Intake Arm set to -10");}, IntakeArm));
                                               
-      driverXbox.x().whileTrue(IntakeArm.popOut(0.4));
-      driverXbox.b().whileTrue(IntakeArm.popOut(-0.4));
+      driverXbox.x().whileTrue(IntakeArm.popOut(3));
+       driverXbox.b().whileTrue(IntakeArm.popOut(-3));
+      //driverXbox.b().whileTrue(;
 
-      AimHood hoodAim = new AimHood(HoodSubsystem, ShooterFlywheel, () -> 4);
-      driverXbox.a().whileTrue(hoodAim);
+      // AimHood hoodAim = new AimHood(HoodSubsystem, ShooterFlywheel, () -> 4);
+      // driverXbox.a().whileTrue(hoodAim);
+
+      // driverXbox.y().toggleOnTrue(new AlignSwerveCommand(
+      //     drivebase,
+      //     driveAngularVelocity,
+      //     Robot.isSimulation()
+      // ));
+
       driverXbox.povUp().onTrue(HoodSubsystem.setDegreeCommand(30));
       driverXbox.povDown().onTrue(HoodSubsystem.setDegreeCommand(60));
 
@@ -438,7 +486,11 @@ public class RobotContainer
   public Command getAutonomousCommand()
   {
     // An example command will be run in autonomous
-    return drivebase.getAutonomousCommand("New Auto");
+    IntakeArm.popOut(0.4);
+    
+    Conveyor.setDefaultCommand(Commands.run(() -> Conveyor.setDutyCycle(0.5), Conveyor));
+
+    return drivebase.getAutonomousCommand("mid start 1");
   }
 
   public void setMotorBrake(boolean brake)
