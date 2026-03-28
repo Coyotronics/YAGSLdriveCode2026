@@ -72,7 +72,7 @@ public class IntakeArm extends SubsystemBase
       .withGearing(new MechanismGearing(GearBox.fromReductionStages(25, 1)))
       .withMotorInverted(true)
       .withIdleMode(MotorMode.BRAKE)
-      .withStatorCurrentLimit(Amps.of(40))      
+      .withStatorCurrentLimit(Amps.of(80))      
       //.withExternalEncoder(m_masterAbsoluteEncoder)
       // .withSoftLimit(Degrees.of(-5), Degrees.of(120))
       //.withExternalEncoderInverted(true)
@@ -91,7 +91,6 @@ public class IntakeArm extends SubsystemBase
       // Length and mass of your arm for sim.
       .withLength(Inches.of(15))
       .withMass(Pounds.of(9))
-      // Telemetry name and verbosity for the arm.
       .withTelemetry("IntakeArm", TelemetryVerbosity.HIGH)
       .withStartingPosition(Degrees.zero());
 
@@ -150,7 +149,7 @@ public class IntakeArm extends SubsystemBase
 
 
   //pop out command
-  public final Current CurrentThreshold = Amps.of(10); // Current threshold to detect when the arm has hit its hard limit 
+  public final Current CurrentThreshold = Amps.of(40); // Current threshold to detect when the arm has hit its hard limit 
 	Debouncer currentDebouncer = new Debouncer(0.001); // Current threshold is only detected if exceeded for 0.1
 	Voltage runVolts = Volts.of(4); // Volts required to run the mechanism down. Could be negative if the mechanism
 //() -> currentDebouncer.calculate(masterMotorController.getStatorCurrent().gte(CurrentThreshold))
@@ -159,11 +158,12 @@ public Command popOut(double volts) {
 		return Commands.startRun(masterMotorController::stopClosedLoopController, // Stop the closed loop controller
 				() -> {
               masterMotorController.setDutyCycle(volts);
-              System.out.println("10 fucking volts!!");
+              System.out.println("10  volts!!");
                }) // Set the voltage of the motor
-				.until(() -> false)
+				.until(() -> currentDebouncer.calculate(masterMotorController.getStatorCurrent().gte(CurrentThreshold)))
         
 				.finallyDo(() -> {
+          System.out.println("Current threshold reached, stopping motor and resetting encoder");
 					masterMotorController.setVoltage(Volts.of(0)); // Stop the motor
 					masterMotorController.setEncoderPosition(Degrees.of(0));
 					masterMotorController.startClosedLoopController();
