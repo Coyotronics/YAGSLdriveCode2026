@@ -275,9 +275,9 @@ public class SwerveSubsystem extends SubsystemBase
       }
     
       @Override
-  public void simulationPeriodic()
-  {
-  }
+    public void simulationPeriodic()
+    {
+    }
 
   /**
    * Setup AutoBuilder for PathPlanner.
