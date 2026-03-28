@@ -49,6 +49,7 @@ import swervelib.SwerveInputStream;
 
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.commands.PathfindingCommand;
 import com.pathplanner.lib.config.PIDConstants;
@@ -86,8 +87,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.DoubleSupplier;
-import java.util.function.Supplier;
+
 import org.json.simple.parser.ParseException;
 //import org.photonvision.targeting.PhotonPipelineResult;
 import swervelib.SwerveController;
@@ -215,6 +215,8 @@ public class RobotContainer
     DriverStation.silenceJoystickConnectionWarning(true);
 
     defaultCommands();
+
+    NamedCommands.registerCommand("IntakeWithAuto", getAutonomousCommand());
         
   }
 
@@ -485,7 +487,15 @@ public class RobotContainer
   public Command getAutonomousCommand()
   {
     // An example command will be run in autonomous
+<<<<<<< HEAD
     return drivebase.getAutonomousCommand("AAA");
+=======
+    IntakeArm.popOut(0.4);
+    
+    Conveyor.setDefaultCommand(Commands.run(() -> Conveyor.setDutyCycle(0.5), Conveyor));
+
+    return drivebase.getAutonomousCommand("mid start 1");
+>>>>>>> d523dda0ebe6b4b82fd052328e467337c307d209
   }
 
   public void setMotorBrake(boolean brake)
