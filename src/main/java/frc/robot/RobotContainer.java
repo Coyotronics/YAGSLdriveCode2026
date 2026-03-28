@@ -487,15 +487,11 @@ public class RobotContainer
   public Command getAutonomousCommand()
   {
     // An example command will be run in autonomous
-<<<<<<< HEAD
-    return drivebase.getAutonomousCommand("AAA");
-=======
     IntakeArm.popOut(0.4);
     
     Conveyor.setDefaultCommand(Commands.run(() -> Conveyor.setDutyCycle(0.5), Conveyor));
 
     return drivebase.getAutonomousCommand("mid start 1");
->>>>>>> d523dda0ebe6b4b82fd052328e467337c307d209
   }
 
   public void setMotorBrake(boolean brake)
