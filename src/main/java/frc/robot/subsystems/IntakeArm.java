@@ -87,7 +87,7 @@ public class IntakeArm extends SubsystemBase
 
   private ArmConfig armCfg = new ArmConfig(masterMotorController)
       // Hard limit is applied to the simulation.
-     // .withHardLimit(Degrees.of(-10), Degrees.of(130))
+     .withHardLimit(Degrees.of(-10), Degrees.of(130))
       // Length and mass of your arm for sim.
       .withLength(Inches.of(15))
       .withMass(Pounds.of(9))

@@ -74,10 +74,13 @@ public class AimHood extends Command {
 
   @Override
   public void execute() {
+    System.out.println("I was run!");
     double distanceMeters = distanceMetersSupplier.getAsDouble();
 
     // Use measured RPM from the subsystem, not just the setpoint.
-    double flywheelRpm = flywheel.getTopRPM().magnitude();
+    //double flywheelRpm = flywheel.getTopRPM().magnitude();
+
+    double flywheelRpm = 4000;
 
     double ballExitSpeedMps = estimateBallExitSpeedMps(flywheelRpm);
 
@@ -89,6 +92,7 @@ public class AimHood extends Command {
         ballExitSpeedMps);
 
     if (Double.isNaN(hoodAngleRad)) {
+      System.out.println("Mm, no angle :p");
       return;
     }
 
@@ -96,6 +100,7 @@ public class AimHood extends Command {
     hoodAngleDeg = MathUtil.clamp(hoodAngleDeg, MIN_HOOD_DEG, MAX_HOOD_DEG);
 
     hood.setAngleSetpoint(Degrees.of(hoodAngleDeg));
+    System.out.println("set angle " + hoodAngleDeg);
   }
 
   @Override

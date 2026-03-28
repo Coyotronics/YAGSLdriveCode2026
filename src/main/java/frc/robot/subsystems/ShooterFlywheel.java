@@ -132,9 +132,4 @@ public class ShooterFlywheel extends SubsystemBase {
     topFlywheel.simIterate();
     bottomFlywheel.simIterate();
   }
-
-public AngularVelocity getSpeed() {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'getSpeed'");
-}
 }
