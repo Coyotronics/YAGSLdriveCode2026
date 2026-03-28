@@ -371,7 +371,6 @@ public class RobotContainer
 
       AimHood hoodAim = new AimHood(HoodSubsystem, ShooterFlywheel, () -> 4);
       driverXbox.a().whileTrue(hoodAim);
-
       driverXbox.povUp().onTrue(HoodSubsystem.setDegreeCommand(30));
       driverXbox.povDown().onTrue(HoodSubsystem.setDegreeCommand(60));
 
