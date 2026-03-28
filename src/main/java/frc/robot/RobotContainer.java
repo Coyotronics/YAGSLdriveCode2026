@@ -6,7 +6,9 @@ package frc.robot;
 
 import java.io.File;
 
+import edu.wpi.first.math.geometry.Rectangle2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -25,7 +27,79 @@ import frc.robot.subsystems.ShooterFlywheel;
 import frc.robot.subsystems.SwerveSubsystem;
 import swervelib.SwerveInputStream;
 
+
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.commands.PathfindingCommand;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.path.PathConstraints;
+import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.util.DriveFeedforwards;
+import com.pathplanner.lib.util.swerve.SwerveSetpoint;
+import com.pathplanner.lib.util.swerve.SwerveSetpointGenerator;
+import com.revrobotics.spark.SparkMax;
+
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.trajectory.Trajectory;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
+import org.json.simple.parser.ParseException;
+//import org.photonvision.targeting.PhotonPipelineResult;
+import swervelib.SwerveController;
+import swervelib.SwerveDrive;
+import swervelib.SwerveDriveTest;
+import swervelib.math.SwerveMath;
+import swervelib.parser.SwerveControllerConfiguration;
+import swervelib.parser.SwerveDriveConfiguration;
+import swervelib.parser.SwerveParser;
+import swervelib.telemetry.SwerveDriveTelemetry;
+import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
+import frc.robot.LimelightHelpers;
+import frc.robot.constants.*;
+import limelight.Limelight;
+import edu.wpi.first.math.VecBuilder;
+
+import limelight.Limelight;
+import limelight.networktables.AngularVelocity3d;
+import limelight.networktables.LimelightPoseEstimator;
+import limelight.networktables.LimelightResults;
+import limelight.networktables.LimelightSettings.LEDMode;
+import limelight.networktables.Orientation3d;
+import limelight.networktables.PoseEstimate;
+import limelight.networktables.LimelightPoseEstimator.EstimationMode;
+import limelight.networktables.target.pipeline.NeuralClassifier;
+
+import static edu.wpi.first.units.Units.*;
+
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Radians;
+
+import java.util.function.*; 
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a "declarative" paradigm, very
@@ -298,58 +372,60 @@ public class RobotContainer
       AimHood hoodAim = new AimHood(HoodSubsystem, ShooterFlywheel, () -> 4);
       driverXbox.a().whileTrue(hoodAim);
 
-      // driverXbox.povUp().onTrue(HoodSubsystem.setDegreeCommand(30));
-      // driverXbox.povDown().onTrue(HoodSubsystem.setDegreeCommand(60));
+      driverXbox.povUp().onTrue(HoodSubsystem.setDegreeCommand(30));
+      driverXbox.povDown().onTrue(HoodSubsystem.setDegreeCommand(60));
 
-    //      var topRightOfTrench = new Pose2d().getTranslation();
-    // var bottomLeftOfTrench = new Pose2d().getTranslation();
-    // var trenchRight = new Rectangle2d(topRightOfTrench,bottomLeftOfTrench);
+         var topRightOfBumper = new Pose2d().getTranslation();
+    var bottomLeftOfBumper = new Pose2d().getTranslation();
+    var BumperRight = new Rectangle2d(topRightOfBumper,bottomLeftOfBumper);
 
 
-    //   var topBlueTrenchTopLeft = new Translation2d(5.238, 8.016);
-    //   var topBlueTrenchBottomRight = new Translation2d(4.048, 6.747);
-    //   var topBlueTrench = new Rectangle2d(topBlueTrenchTopLeft, topBlueTrenchBottomRight);
+      var topBlueBumperTopLeft = new Translation2d(3.565, 8.016);
+      var topBlueBumperBottomRight = new Translation2d(5.571, 4.618);
+      var topBlueBumper = new Rectangle2d(topBlueBumperTopLeft, topBlueBumperBottomRight);
 
-    //   var bottomBlueTrenchTopLeft = new Translation2d(5.146, 1.409);
-    //   var bottomBlueTrenchBottomRight = new Translation2d(4.034, 0.045);
-    //   var bottomBlueTrench = new Rectangle2d(bottomBlueTrenchTopLeft, bottomBlueTrenchBottomRight);
+      var bottomBlueBumperTopLeft = new Translation2d(3.541, 3.379);
+      var bottomBlueBumperBottomRight = new Translation2d(5.579, 1.544);
+      var bottomBlueBumper = new Rectangle2d(bottomBlueBumperTopLeft, bottomBlueBumperBottomRight);
 
-    //   var topRedTrenchTopLeft = new Translation2d(12.558, 8.013);
-    //   var topRedTrenchBottomRight = new Translation2d(11.394, 6.816);
-    //   var topRedTrench = new Rectangle2d(topRedTrenchTopLeft, topRedTrenchBottomRight);
+      var topRedBumperTopLeft = new Translation2d(10.982, 6.775);
+      var topRedBumperBottomRight = new Translation2d(12.769, 4.586);
+      var topRedBumper = new Rectangle2d(topRedBumperTopLeft, topRedBumperBottomRight);
 
-    //   var bottomRedTrenchTopLeft = new Translation2d(12.539, 1.254);
-    //   var bottomRedTrenchBottomRight = new Translation2d(11.394, 0.045);
-    //   var bottomRedTrench = new Rectangle2d(bottomRedTrenchTopLeft, bottomRedTrenchBottomRight);
+      var bottomRedBumperTopLeft = new Translation2d(10.966, 3.411);
+      var bottomRedBumpterBottomRight = new Translation2d(12.881, 1.673);
+      var bottomRedBumper = new Rectangle2d(bottomRedBumperTopLeft, bottomRedBumpterBottomRight);
 
-    //   Predicate<Pose2d> inTheTrenches = pose -> 
-    //                                   topBlueTrench.contains(pose.getTranslation()) ||
-    //                                   bottomBlueTrench.contains(pose.getTranslation()) ||
-    //                                   topRedTrench.contains(pose.getTranslation()) ||
-    //                                   bottomRedTrench.contains(pose.getTranslation())
-    //                                   ;
+      Predicate<Pose2d> inTheBumpers = pose -> 
+                                      topBlueBumper.contains(pose.getTranslation()) ||
+                                      bottomBlueBumper.contains(pose.getTranslation()) ||
+                                      topRedBumper.contains(pose.getTranslation()) ||
+                                      bottomRedBumper.contains(pose.getTranslation())
+                                      ;
                                   
 
-    //   double headingDegrees = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue ? 0.0 : 180.0;
+      double headingDegrees = 45;
     
-    //   SwerveInputStream stream = driveAngularVelocity.copy().withControllerHeadingAxis(
-    //                                                           ()->  Math.cos(Degrees.of(headingDegrees).in(Radians)), 
-    //                                                           ()->Math.sin(Degrees.of(headingDegrees).in(Radians)))
-    //                                                         .headingWhile(true);
+      SwerveInputStream stream = driveAngularVelocity.copy().withControllerHeadingAxis(
+                                                              ()->  Math.cos(Degrees.of(headingDegrees).in(Radians)), 
+                                                              ()->Math.sin(Degrees.of(headingDegrees).in(Radians)))
+                                                            .headingWhile(true);
       
-    //   Command driveAimedAtTrenchFieldOriented = drivebase.driveFieldOriented(stream);
+      Command driveAimedAtBumperFieldOriented = drivebase.driveFieldOriented(stream);
 
 
-    //   Trigger trench = new Trigger( 
-    //                               () -> inTheTrenches.test(drivebase.getPose())
-    //                               )
-    //                                 .whileTrue(
-    //                                             Commands.run(
-    //                                                           ()-> {drivebase.setDefaultCommand(driveAimedAtTrenchFieldOriented);} 
-    //                                                         )
+      Trigger Bumper = new Trigger( 
+                                  () -> inTheBumpers.test(drivebase.getPose())
+                                  );
+                                  //   .whileTrue(
+                                  //               Commands.run(
+                                  //                             ()-> {drivebase.setDefaultCommand(driveAimedAtBumperFieldOriented);} 
+                                  //                           )
+                                  //   .finallyDo(() -> drivebase.setDefaultCommand(drivebase.driveFieldOriented(driveAngularVelocity))
+                                  //   )
+                                  // );
 
-    //                                 .finallyDo(  () -> drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity) )
-    //                               );
+      driverXbox.b().and(Bumper).whileTrue(driveAimedAtBumperFieldOriented);
 
     
 
