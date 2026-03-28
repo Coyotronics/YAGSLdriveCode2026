@@ -144,26 +144,29 @@ public class AimHood extends Command {
 
     double sqrt = Math.sqrt(discriminant);
 
-    // Lower-angle solution:
-    // tan(theta) = (v^2 - sqrt(...)) / (g d)
-    double tanTheta = (v2 - sqrt) / (G * d);
 
-    double theta = Math.atan(tanTheta);
+   double thetaLow = Math.atan((v2 - sqrt) / (G * d));
+  double thetaHigh = Math.atan((v2 + sqrt) / (G * d));
 
-    // Optional sanity clamp in radians before converting back to degrees.
-    double minRad = Math.toRadians(MIN_HOOD_DEG);
-    double maxRad = Math.toRadians(MAX_HOOD_DEG);
+  // Convert to hood angles
+  double hoodLow = Math.PI / 2.0 - thetaLow;
+  double hoodHigh = Math.PI / 2.0 - thetaHigh;
 
-    if (theta < minRad || theta > maxRad) {
-      // Try the higher-angle branch if the lower one is outside hood limits.
-      double tanThetaHigh = (v2 + sqrt) / (G * d);
-      double thetaHigh = Math.atan(tanThetaHigh);
+  double minRad = Math.toRadians(MIN_HOOD_DEG);
+  double maxRad = Math.toRadians(MAX_HOOD_DEG);
 
-      if (thetaHigh >= minRad && thetaHigh <= maxRad) {
-        return thetaHigh;
-      }
-    }
+  boolean lowValid = hoodLow >= minRad && hoodLow <= maxRad;
+  boolean highValid = hoodHigh >= minRad && hoodHigh <= maxRad;
 
-    return theta;
+  // Prefer low shot
+  if (lowValid) {
+    return hoodLow;
   }
+
+  if (highValid) {
+    return hoodHigh;
+  }
+
+  return Double.NaN;
+  } 
 }

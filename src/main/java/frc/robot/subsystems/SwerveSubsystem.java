@@ -4,8 +4,6 @@
 
 package frc.robot.subsystems;
 
-import static edu.wpi.first.units.Units.Meter;
-
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.commands.PathfindingCommand;
@@ -136,6 +134,7 @@ public class SwerveSubsystem extends SubsystemBase
    swerveDrive.setModuleStateOptimization(true);
 
    setUplimelight();
+
        
      }
    
@@ -173,8 +172,9 @@ public class SwerveSubsystem extends SubsystemBase
   @Override
   public void periodic()
   {
-
+    swerveDrive.updateOdometry();
     limelightPeriodic();
+    System.out.println(swerveDrive.getYaw());
         // LimelightHelpers.SetRobotOrientation(
         //   "limelight-shooter", // TODO: limelight name
         //   getHeading().getDegrees(),

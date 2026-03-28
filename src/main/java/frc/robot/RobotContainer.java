@@ -177,8 +177,8 @@ public class RobotContainer
                                                              .allianceRelativeControl(false);
 
   SwerveInputStream driveAngularVelocityKeyboard = SwerveInputStream.of(drivebase.getSwerveDrive(),
-                                                                        () -> -driverXbox.getLeftY(),
-                                                                        () -> -driverXbox.getLeftX())
+                                                                        () -> -1*driverXbox.getLeftY(),
+                                                                        () -> driverXbox.getLeftX())
                                                                     .withControllerRotationAxis(driverXbox :: getRightX)
                                                                     .deadband(OperatorConstants.DEADBAND)
                                                                     .scaleTranslation(0.8)
@@ -228,7 +228,9 @@ public class RobotContainer
 
     Command testCommand = drivebase.driveFieldOriented(test);
     Command driveFieldOrientedDirectAngle      = drivebase.driveFieldOriented(driveDirectAngle);
+
     Command driveFieldOrientedAnglularVelocity = drivebase.driveFieldOriented(driveAngularVelocity);
+
     Command driveRobotOrientedAngularVelocity  = drivebase.driveFieldOriented(driveRobotOriented);
     
     Command driveSetpointGen = drivebase.driveWithSetpointGeneratorFieldRelative(
@@ -393,12 +395,12 @@ public class RobotContainer
           
       driverXbox.leftTrigger(0.05).whileTrue(Commands.run(() -> 
                                               {Conveyor.setDutyCycleSetpoint(
-                                                  Math.max(-1, Math.min(1, driverXbox.getLeftTriggerAxis()))   );
+                                                  Math.max(-0.5, Math.min(0.5, driverXbox.getLeftTriggerAxis()))   );
                                                 System.out.println("Conveyor set to " + driverXbox.getLeftTriggerAxis());}, Conveyor).finallyDo(() -> Conveyor.setDutyCycleSetpoint(0)));
                                             
       driverXbox.leftTrigger(0.05).whileTrue(Commands.run(() -> 
                                               {IntakeRollers.setDutyCycleSetpoint(
-                                                  Math.max(-1, Math.min(1, 0.3)));
+                                                  Math.max(-1, Math.min(1,  driverXbox.getLeftTriggerAxis())));
                                                 System.out.println("IntakeRollers set to " + 0.2);
                                               }, IntakeRollers));
       // driverXbox.povRight().whileTrue(Commands.run(() -> 
@@ -487,11 +489,11 @@ public class RobotContainer
   public Command getAutonomousCommand()
   {
     // An example command will be run in autonomous
-    IntakeArm.popOut(0.4);
+    // IntakeArm.popOut(0.4);
     
-    Conveyor.setDefaultCommand(Commands.run(() -> Conveyor.setDutyCycle(0.5), Conveyor));
+    // Conveyor.setDefaultCommand(Commands.run(() -> Conveyor.setDutyCycle(0.5), Conveyor));
 
-    return drivebase.getAutonomousCommand("mid start 1");
+    return drivebase.getAutonomousCommand("AAA");
   }
 
   public void setMotorBrake(boolean brake)
