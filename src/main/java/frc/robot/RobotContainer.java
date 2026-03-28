@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.commands.AimHood;
 import frc.robot.constants.Constants;
 import frc.robot.constants.Constants.OperatorConstants;
 import frc.robot.subsystems.HoodSubsystem;
@@ -139,11 +140,11 @@ public class RobotContainer
 
      if (RobotBase.isSimulation())
     {
-      drivebase.setDefaultCommand(driveFieldOrientedDirectAngleKeyboard);
+      drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
     } else
     {
       System.out.println("Setting default command");
-      drivebase.setDefaultCommand(testCommand);
+      drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
       //drivebase.setDefaultCommand(driveFieldOrientedDirectAngleKeyboard);
       //drivebase.setDefaultCommand(driveFieldOrientedDirectAngle);
       System.out.println("I lowk did this shit");
@@ -262,10 +263,12 @@ public class RobotContainer
 
       driverXbox.povUp().whileTrue(Commands.run(() -> 
                                               {HoodSubsystem.setVelocity(10);
-                                                System.out.println("Hood set to 10");}, HoodSubsystem));
+                                                System.out.println("Hood set to 10");
+                                                System.out.println("Hood angle: " + HoodSubsystem.getAngle());}, HoodSubsystem));
       driverXbox.povDown().whileTrue(Commands.run(() -> 
                                                  {HoodSubsystem.setVelocity(-10);
-                                                   System.out.println("Hood set to -10");}, HoodSubsystem));
+                                                   System.out.println("Hood set to -10");
+                                                    System.out.println("Hood angle: " + HoodSubsystem.getAngle());}, HoodSubsystem));
 
       driverXbox.rightTrigger(0.05).whileTrue(Commands.run(() -> 
                                               {ShooterFlywheel.setBothDutyCycleSetpoint(
@@ -291,6 +294,9 @@ public class RobotContainer
                                               
       driverXbox.x().whileTrue(IntakeArm.popOut(0.4));
       driverXbox.b().whileTrue(IntakeArm.popOut(-0.4));
+
+      AimHood hoodAim = new AimHood(HoodSubsystem, ShooterFlywheel, () -> 4);
+      driverXbox.a().whileTrue(hoodAim);
 
       // driverXbox.povUp().onTrue(HoodSubsystem.setDegreeCommand(30));
       // driverXbox.povDown().onTrue(HoodSubsystem.setDegreeCommand(60));

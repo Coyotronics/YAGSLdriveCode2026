@@ -131,7 +131,7 @@ public class ShootOnTheMove extends Command {
 
     lastHoodAngle = hood.getAngle().in(Units.Degrees);
     lastTurretAngle = drivetrain.getHeading();
-    lastShootSpeed = flywheel.getSpeed();
+    lastShootSpeed = flywheel.getTopRPM();
   }
 
   @Override

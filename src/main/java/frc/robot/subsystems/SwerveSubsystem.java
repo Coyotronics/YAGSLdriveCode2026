@@ -213,7 +213,7 @@ public class SwerveSubsystem extends SubsystemBase
     private boolean initialReading = false;
     
       private void limelightPeriodic() {
-        System.out.println("I am running");
+       // System.out.println("I am running");
         limelight.getSettings()
                .withRobotOrientation(new Orientation3d(new Rotation3d(swerveDrive.getOdometryHeading()
                                                                                  .rotateBy(Rotation2d.kZero)),
@@ -231,7 +231,7 @@ public class SwerveSubsystem extends SubsystemBase
       // }
       if (results.isPresent()/* && poseEstimates.isPresent()*/)
       {
-        System.out.println("I have results!");
+        //System.out.println("I have results!");
         LimelightResults result       = results.get();
         PoseEstimate     poseEstimate = poseEstimates.get();
         SmartDashboard.putNumber("Avg Tag Ambiguity", poseEstimate.getAvgTagAmbiguity());
