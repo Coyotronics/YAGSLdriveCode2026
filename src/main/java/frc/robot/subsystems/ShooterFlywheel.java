@@ -96,7 +96,7 @@ public class ShooterFlywheel extends SubsystemBase {
   public Command setBothVelocityCommand(AngularVelocity velocity) {
     return run(() -> {
         topFlywheel.setMechanismVelocitySetpoint(velocity);
-        bottomFlywheel.setMechanismVelocitySetpoint(velocity);
+        bottomFlywheel.setMechanismVelocitySetpoint(velocity.times(2));
     });
 }
 

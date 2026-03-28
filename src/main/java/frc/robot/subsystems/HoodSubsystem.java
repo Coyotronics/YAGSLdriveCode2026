@@ -7,6 +7,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -29,7 +30,7 @@ import edu.wpi.first.units.*;
 public class HoodSubsystem extends SubsystemBase {//Modeled as a pivot, since it's not really affected by gravity
 
   private final SparkMax hoodMotor = new SparkMax(47, MotorType.kBrushless);
-  private SparkAbsoluteEncoder m_masterAbsoluteEncoder = hoodMotor.getAbsoluteEncoder();
+ // private SparkAbsoluteEncoder m_masterAbsoluteEncoder = hoodMotor.getAbsoluteEncoder();
 
 
   private final SmartMotorControllerConfig motorConfig =
@@ -117,6 +118,7 @@ public class HoodSubsystem extends SubsystemBase {//Modeled as a pivot, since it
   @Override
   public void periodic() {
     hood.updateTelemetry();
+    //SmartDashboard.putData("hood angle", hood.getAngle());
   }
 
   @Override

@@ -242,7 +242,7 @@ public class RobotContainer
     } else
     {
       System.out.println("Setting default command");
-      drivebase.setDefaultCommand(testCommand);
+      drivebase.setDefaultCommand(driveFieldOrientedAnglularVelocity);
       //drivebase.setDefaultCommand(driveFieldOrientedDirectAngleKeyboard);
       //drivebase.setDefaultCommand(driveFieldOrientedDirectAngle);
       System.out.println("I lowk did this shit");
@@ -374,9 +374,11 @@ public class RobotContainer
       //                                              System.out.println(HoodSubsystem.getAngle().in(Degrees));}, HoodSubsystem));
 
       driverXbox.povUp().whileTrue(Commands.run(() -> 
-                                              {HoodSubsystem.setVelocity(10);
+                                              {
+                                                HoodSubsystem.setVelocity(10);
                                                 System.out.println("Hood set to 10");
-                                                System.out.println("Hood angle: " + HoodSubsystem.getAngle());}, HoodSubsystem));
+                                                System.out.println("Hood angle: " + HoodSubsystem.getAngle());
+                                                }, HoodSubsystem));
       driverXbox.povDown().whileTrue(Commands.run(() -> 
                                                  {HoodSubsystem.setVelocity(-10);
                                                    System.out.println("Hood set to -10");
@@ -389,13 +391,14 @@ public class RobotContainer
           
       driverXbox.leftTrigger(0.05).whileTrue(Commands.run(() -> 
                                               {Conveyor.setDutyCycleSetpoint(
-                                                  Math.max(-1, Math.min(1,-0.2)));
-                                                System.out.println("Conveyor set to " + "-0.2");}, Conveyor));
+                                                  Math.max(-1, Math.min(1, driverXbox.getLeftTriggerAxis()))   );
+                                                System.out.println("Conveyor set to " + driverXbox.getLeftTriggerAxis());}, Conveyor).finallyDo(() -> Conveyor.setDutyCycleSetpoint(0)));
                                             
       driverXbox.leftTrigger(0.05).whileTrue(Commands.run(() -> 
                                               {IntakeRollers.setDutyCycleSetpoint(
-                                                  Math.max(-1, Math.min(1, driverXbox.getLeftTriggerAxis())));
-                                                System.out.println("IntakeRollers set to " + driverXbox.getLeftTriggerAxis());}, IntakeRollers));
+                                                  Math.max(-1, Math.min(1, 0.3)));
+                                                System.out.println("IntakeRollers set to " + 0.2);
+                                              }, IntakeRollers));
       // driverXbox.povRight().whileTrue(Commands.run(() -> 
       //                                         {IntakeArm.setVelocity(10);
       //                                           System.out.println("Intake Arm set to 10");}, IntakeArm));                                
@@ -417,60 +420,58 @@ public class RobotContainer
       //     Robot.isSimulation()
       // ));
 
-      driverXbox.povUp().onTrue(HoodSubsystem.setDegreeCommand(30));
-      driverXbox.povDown().onTrue(HoodSubsystem.setDegreeCommand(60));
-
-         var topRightOfBumper = new Pose2d().getTranslation();
-    var bottomLeftOfBumper = new Pose2d().getTranslation();
-    var BumperRight = new Rectangle2d(topRightOfBumper,bottomLeftOfBumper);
+     
+    //      var topRightOfBumper = new Pose2d().getTranslation();
+    // var bottomLeftOfBumper = new Pose2d().getTranslation();
+    // var BumperRight = new Rectangle2d(topRightOfBumper,bottomLeftOfBumper);
 
 
-      var topBlueBumperTopLeft = new Translation2d(3.565, 8.016);
-      var topBlueBumperBottomRight = new Translation2d(5.571, 4.618);
-      var topBlueBumper = new Rectangle2d(topBlueBumperTopLeft, topBlueBumperBottomRight);
+    //   var topBlueBumperTopLeft = new Translation2d(3.565, 8.016);
+    //   var topBlueBumperBottomRight = new Translation2d(5.571, 4.618);
+    //   var topBlueBumper = new Rectangle2d(topBlueBumperTopLeft, topBlueBumperBottomRight);
 
-      var bottomBlueBumperTopLeft = new Translation2d(3.541, 3.379);
-      var bottomBlueBumperBottomRight = new Translation2d(5.579, 1.544);
-      var bottomBlueBumper = new Rectangle2d(bottomBlueBumperTopLeft, bottomBlueBumperBottomRight);
+    //   var bottomBlueBumperTopLeft = new Translation2d(3.541, 3.379);
+    //   var bottomBlueBumperBottomRight = new Translation2d(5.579, 1.544);
+    //   var bottomBlueBumper = new Rectangle2d(bottomBlueBumperTopLeft, bottomBlueBumperBottomRight);
 
-      var topRedBumperTopLeft = new Translation2d(10.982, 6.775);
-      var topRedBumperBottomRight = new Translation2d(12.769, 4.586);
-      var topRedBumper = new Rectangle2d(topRedBumperTopLeft, topRedBumperBottomRight);
+    //   var topRedBumperTopLeft = new Translation2d(10.982, 6.775);
+    //   var topRedBumperBottomRight = new Translation2d(12.769, 4.586);
+    //   var topRedBumper = new Rectangle2d(topRedBumperTopLeft, topRedBumperBottomRight);
 
-      var bottomRedBumperTopLeft = new Translation2d(10.966, 3.411);
-      var bottomRedBumpterBottomRight = new Translation2d(12.881, 1.673);
-      var bottomRedBumper = new Rectangle2d(bottomRedBumperTopLeft, bottomRedBumpterBottomRight);
+    //   var bottomRedBumperTopLeft = new Translation2d(10.966, 3.411);
+    //   var bottomRedBumpterBottomRight = new Translation2d(12.881, 1.673);
+    //   var bottomRedBumper = new Rectangle2d(bottomRedBumperTopLeft, bottomRedBumpterBottomRight);
 
-      Predicate<Pose2d> inTheBumpers = pose -> 
-                                      topBlueBumper.contains(pose.getTranslation()) ||
-                                      bottomBlueBumper.contains(pose.getTranslation()) ||
-                                      topRedBumper.contains(pose.getTranslation()) ||
-                                      bottomRedBumper.contains(pose.getTranslation())
-                                      ;
+    //   Predicate<Pose2d> inTheBumpers = pose -> 
+    //                                   topBlueBumper.contains(pose.getTranslation()) ||
+    //                                   bottomBlueBumper.contains(pose.getTranslation()) ||
+    //                                   topRedBumper.contains(pose.getTranslation()) ||
+    //                                   bottomRedBumper.contains(pose.getTranslation())
+    //                                   ;
                                   
 
-      double headingDegrees = 45;
+    //   double headingDegrees = 45;
     
-      SwerveInputStream stream = driveAngularVelocity.copy().withControllerHeadingAxis(
-                                                              ()->  Math.cos(Degrees.of(headingDegrees).in(Radians)), 
-                                                              ()->Math.sin(Degrees.of(headingDegrees).in(Radians)))
-                                                            .headingWhile(true);
+    //   SwerveInputStream stream = driveAngularVelocity.copy().withControllerHeadingAxis(
+    //                                                           ()->  Math.cos(Degrees.of(headingDegrees).in(Radians)), 
+    //                                                           ()->Math.sin(Degrees.of(headingDegrees).in(Radians)))
+    //                                                         .headingWhile(true);
       
-      Command driveAimedAtBumperFieldOriented = drivebase.driveFieldOriented(stream);
+    //   Command driveAimedAtBumperFieldOriented = drivebase.driveFieldOriented(stream);
 
 
-      Trigger Bumper = new Trigger( 
-                                  () -> inTheBumpers.test(drivebase.getPose())
-                                  );
-                                  //   .whileTrue(
-                                  //               Commands.run(
-                                  //                             ()-> {drivebase.setDefaultCommand(driveAimedAtBumperFieldOriented);} 
-                                  //                           )
-                                  //   .finallyDo(() -> drivebase.setDefaultCommand(drivebase.driveFieldOriented(driveAngularVelocity))
-                                  //   )
+    //   Trigger Bumper = new Trigger( 
+    //                               () -> inTheBumpers.test(drivebase.getPose())
+    //                               );
+    //                               //   .whileTrue(
+    //                               //               Commands.run(
+    //                               //                             ()-> {drivebase.setDefaultCommand(driveAimedAtBumperFieldOriented);} 
+    //                               //                           )
+    //                               //   .finallyDo(() -> drivebase.setDefaultCommand(drivebase.driveFieldOriented(driveAngularVelocity))
+    //                               //   )
                                   // );
 
-      driverXbox.b().and(Bumper).whileTrue(driveAimedAtBumperFieldOriented);
+      //driverXbox.b().whileTrue(driveAimedAtBumperFieldOriented);
 
     
 
@@ -484,7 +485,7 @@ public class RobotContainer
   public Command getAutonomousCommand()
   {
     // An example command will be run in autonomous
-    return drivebase.getAutonomousCommand("mid start 2");
+    return drivebase.getAutonomousCommand("AAA");
   }
 
   public void setMotorBrake(boolean brake)
